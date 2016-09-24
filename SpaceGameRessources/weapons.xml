@@ -1,0 +1,6 @@
+<Weapons>
+	<Weapon name="Gun1" shotType="Shot1" fireRate="0.1" mesh="gun1.mesh" noslePosX="0" noslePosY="0" noslePosZ="-6" hitPoints="400" consumption="0.1" mass="5">
+		<CollisionShape posX="0" posY="0" posZ="0" scaleX="1" scaleY="1" scaleZ="10"/>
+		<HardPoint posX="0" posY="-2" posZ="-5"/>
+	</Weapon>
+</Weapons>

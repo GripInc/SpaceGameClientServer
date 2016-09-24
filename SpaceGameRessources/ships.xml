@@ -1,0 +1,31 @@
+<Ships>
+	<Ship name="FirstShip" angularDamping="0.7" linearDamping="0.5" maxYawRate="100" yawInertia="100" maxPitchRate="100" pitchInertia="70" maxRollRate="100" rollInertia="40" mass="10" mesh="ship_model.mesh" headPosX="0" headPosY="11" headPosZ="40" scaleX="1" scaleY="1" scaleZ="1" cargoSpace="50">
+		<ObjectPart name="body_front" space="1" allowedParts="radar,reactor,accumulator,shield" hitPoints="800" armorSurface="5">
+			<CollisionShape mesh="body_collision.mesh" posX="0" posY="0" posZ="0" scaleX="1" scaleY="1" scaleZ="1"/>
+		</ObjectPart>
+		<!--<ObjectPart name="body_rear" >
+		</ObjectPart>-->
+		<ObjectPart name="left_wing" space="1" allowedParts="fuelTank,ammoBox,dissipator" hitPoints="600" armorSurface="7">
+			<CollisionShape mesh="left_wing_collision.mesh" posX="0" posY="0" posZ="0" scaleX="1" scaleY="1" scaleZ="1"/>
+		</ObjectPart>
+		<ObjectPart name="right_wing" space="1" allowedParts="fuelTank,ammoBox,dissipator" hitPoints="600" armorSurface="7">
+			<CollisionShape mesh="right_wing_collision.mesh" posX="0" posY="0" posZ="0" scaleX="1" scaleY="1" scaleZ="1"/>
+		</ObjectPart>
+		<ObjectPart name="right_engine" space="1" allowedParts="engine" hitPoints="800" armorSurface="3">
+			<CollisionShape mesh="right_engine_collision.mesh" posX="0" posY="0" posZ="0" scaleX="1" scaleY="1" scaleZ="1"/>
+		</ObjectPart>
+		<ObjectPart name="left_engine" space="1" allowedParts="engine" hitPoints="800" armorSurface="3">
+			<CollisionShape mesh="left_engine_collision.mesh" posX="0" posY="0" posZ="0" scaleX="1" scaleY="1" scaleZ="1"/>
+		</ObjectPart>
+		<ObjectPart name="derive" hitPoints="700" armorSurface="2">
+			<CollisionShape mesh="derive_collision.mesh" posX="0" posY="0" posZ="0" scaleX="1" scaleY="1" scaleZ="1"/>
+		</ObjectPart>
+		<ObjectPart name="ailerons" hitPoints="700" armorSurface="1">
+			<CollisionShape mesh="ailerons_collision.mesh" posX="0" posY="0" posZ="0" scaleX="1" scaleY="1" scaleZ="1"/>
+		</ObjectPart>
+		<HardPoint index="0" posX="10" posY="2" posZ="0" roll="0" />
+		<HardPoint index="1" posX="-10" posY="2" posZ="0" roll="0" />
+		<HardPoint index="2" posX="20" posY="2" posZ="4" roll="0" />
+		<HardPoint index="3" posX="-20" posY="2" posZ="4" roll="0" />
+	</Ship>
+</Ships>

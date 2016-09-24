@@ -1,0 +1,17 @@
+{
+	"players" :
+	[{
+			"playerId" : "grip_inc",
+			"money" : 2000,
+			"ship" : "FirstShip",
+			"station" : "Station1",
+			"sector" : "Alpha"
+		}, {
+			"playerId" : "grip_inc2",
+			"money" : 2000,
+			"ship" : "FirstShip",
+			"station" : "Station1",
+			"sector" : "Alpha"
+		}
+	]
+}

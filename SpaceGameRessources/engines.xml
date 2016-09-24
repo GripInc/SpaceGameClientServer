@@ -1,0 +1,3 @@
+<Engines>
+	<Engine name="FirstEngine" reactivity="100" power="10" maxSpeed="100" thrustSensitivity="10" thrustMaxValue="100" type="chimical" consumption="1" space="1" hitPoints="400" mass="30"/>
+</Engines>

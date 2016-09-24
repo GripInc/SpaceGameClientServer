@@ -1,0 +1,4 @@
+<Directionals>
+	<Directional name="FirstDirectional" turnRateMultiplier="1" inertiaMultiplier="1" space="0" hitPoints="800" mass="0"/>
+	<Directional name="SecondDirectional" turnRateMultiplier="1.2" inertiaMultiplier="0.8" space="0" hitPoints="800" mass="0"/>
+</Directionals>

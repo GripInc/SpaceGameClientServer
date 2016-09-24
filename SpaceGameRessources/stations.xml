@@ -1,0 +1,5 @@
+<Stations>
+	<Station stationModel="Station1" screenModel="Station1" hasEquipementDealer="true" hasCommodityDealer="true" hasBar="true" hasGuildsOffice="true" hasMissionsComputer="true" hasTrainer="true"><!-- hasShipDealer="true" (same as equipement) -->
+		<LaunchPoint posX="1100" posY="0" posZ="0" roll="0" pitch="0" yaw="1.57"/>
+	</Station>
+</Stations>

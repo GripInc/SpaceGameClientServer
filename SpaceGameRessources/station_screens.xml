@@ -1,0 +1,35 @@
+<StationScreens>
+	<StationScreen screenModel="Station1" firstScreen="LaunchPad" >
+		<Screen name="LaunchPad" background="Station1LaunchPadBG">
+			<ClickZone name="Launch" x="400" y="500" width="200" height="200" target="special_launch" />
+			<ClickZone name="MainConcourse" x="400" y="200" width="200" height="200" target="MainConcourse" />
+		</Screen>
+		<Screen name="MainConcourse" background="Station1MainConcourseBG">
+			<ClickZone name="LaunchPad" x="0" y="0" width="200" height="200" target="LaunchPad" />
+			<ClickZone name="EquipementDealer" x="200" y="0" width="200" height="200" target="EquipementDealer"/>
+			<ClickZone name="CommodityDealer" x="400" y="0" width="200" height="200" target="CommodityDealer" />
+			<ClickZone name="MissionsComputer" x="600" y="0" width="200" height="200" target="MissionsComputer" />
+			<ClickZone name="Bar" x="0" y="200" width="200" height="200" target="Bar" />
+			<ClickZone name="GuildsOffice" x="200" y="200" width="200" height="200" target="GuildsOffice" />
+			<ClickZone name="Trainer" x="400" y="200" width="200" height="200" target="Trainer" />
+		</Screen>
+		<Screen name="EquipementDealer" background="Station1EquipementDealerBG">
+			<ClickZone name="MainConcourse" x="400" y="200" width="200" height="200" target="MainConcourse" />
+		</Screen>
+		<Screen name="CommodityDealer" background="Station1CommodityDealerBG">
+			<ClickZone name="MainConcourse" x="400" y="200" width="200" height="200" target="MainConcourse" />
+		</Screen>
+		<Screen name="MissionsComputer" background="Station1MissionsComputerBG">
+			<ClickZone name="MainConcourse" x="400" y="200" width="200" height="200" target="MainConcourse" />
+		</Screen>
+		<Screen name="Bar" background="Station1BarBG">
+			<ClickZone name="MainConcourse" x="400" y="200" width="200" height="200" target="MainConcourse" />
+		</Screen>
+		<Screen name="GuildsOffice" background="Station1GuildsOfficeBG">
+			<ClickZone name="MainConcourse" x="400" y="200" width="200" height="200" target="MainConcourse" />
+		</Screen>
+		<Screen name="Trainer" background="Station1TrainerBG">
+			<ClickZone name="MainConcourse" x="400" y="200" width="200" height="200" target="MainConcourse" />
+		</Screen>
+	</StationScreen>
+</StationScreens>
