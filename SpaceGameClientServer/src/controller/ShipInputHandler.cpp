@@ -1,9 +1,10 @@
 #include "controller/ShipInputHandler.h"
 
-#include "controller/GameController.h"
-#include "controller/SectorController.h"
+#include "network/ClientNetworkService.h"
 
 #include "utils/OgreBulletConvert.h"
+#include "utils/StringUtils.h"
+
 #include "manager/LoggerManager.h"
 
 #include "OgreRenderWindow.h"
@@ -28,7 +29,7 @@ void ShipInputHandler::sendInputToServer(SectorTick _tick)
 	if(mInputChanged)
 	{
 		LoggerManager::getInstance().logI("ShipInputHandler", "sendInputToServer", "Send input change to server. Tick is " + StringUtils::toStr(_tick), false);
-		NetworkService::getInstance().sendShipInput(_tick, mInputState);
+		ClientNetworkService::getInstance().sendShipInput(_tick, mInputState);
 		mInputChanged = false;
 	}
 }

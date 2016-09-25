@@ -21,6 +21,8 @@ public:
 
 	virtual void instantiateObject(Ogre::SceneManager* _sceneManager, btDiscreteDynamicsWorld* _dynamicWorld, UniqueId _uniqueId);
 
+	void attachCamera(Ogre::SceneNode* _cameraSceneNode);
+
 	void addEngine(const EngineSettings& _engine);
 	void addDirectional(const DirectionalSettings& _directional);
 	void addWeapon(const WeaponSettings& _weapon, int _index);
@@ -71,6 +73,8 @@ public:
 	//Return true if the check passed without need to fix
 	//False if a fix was needed and done
 	//virtual bool checkAndFixState(const ShipState& _state);
+
+	void serialize(RakNet::BitStream& _bitStream) const;
 
 protected:
 	///Ship properties from XML

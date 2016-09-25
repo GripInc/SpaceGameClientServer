@@ -1,22 +1,17 @@
 #ifndef _NETWORK_SERVICE_H_
 #define _NETWORK_SERVICE_H_
 
-#include "network/INetworkService.h"
 #include "network/NetworkLayer.h"
 
-#include "SpaceGameTypes.h"
+namespace RakNet
+{
+	struct Packet;
+}
 
-class GameController;
-class InputState;
-
-class NetworkService : public INetworkService
+class NetworkService
 {
 public:
 	static const char LEVEL_1_CHANNEL;
-
-	///Singleton
-	static NetworkService& getInstance();
-	void init(NetworkLayer* _networkLayer, GameController* _gameController);
 
 	enum GameMessages 
 	{ 
@@ -26,24 +21,15 @@ public:
 		ID_GAME_MESSAGE_SECTOR_STATE
 	};
 
+	///Handle a packet
+	virtual void handlePacket(RakNet::Packet* _packet) = 0;
+
+	///Get network messages, process it and release it
 	void processNetworkBuffer();
-	virtual void handlePacket(RakNet::Packet* _packet);
-
-	void getPlayerData() const;
-	void requireLaunchFromStation() const;
-	void sendShipInput(SectorTick _gameTick, const InputState& _inputState) const;
-
-	//RakNet::Time getClockDifferentialToServer() const;
 
 protected:
-	///Singleton
-	static NetworkService* mInstance;
-	NetworkService() {}
-
+	///The network layer
 	NetworkLayer* mNetworkLayer = nullptr;
-	GameController* mGameController = nullptr;
-
-	void receivedLaunchData(RakNet::BitStream& _data) const;
 };
 
 #endif //_NETWORK_SERVICE_H_

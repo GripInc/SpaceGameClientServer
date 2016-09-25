@@ -1,10 +1,10 @@
 #include "controller/StationController.h"
 
-#include "controller/GameController.h"
-
 #include "model/GameSettings.h"
 
 #include "view/StationView.h"
+
+#include "network/ClientNetworkService.h"
 
 #include "manager/LoggerManager.h"
 
@@ -111,7 +111,7 @@ bool StationController::mouseReleased( const OIS::MouseEvent &arg, OIS::MouseBut
 	{
 		if(nextScreen == TARGET_SPECIAL_LAUNCH)
 		{
-			NetworkService::getInstance().requireLaunchFromStation();
+			ClientNetworkService::getInstance().requireLaunchFromStation();
 		}
 		else
 		{

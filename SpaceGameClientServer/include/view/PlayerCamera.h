@@ -21,6 +21,7 @@ public:
 	void createCamera(const std::string& _name);
 
 	Ogre::SceneNode* getCameraNode() const { return mCameraNode; }
+	Ogre::Camera* getCamera() const { return mCamera; }
 
 protected:
 	///Singleton

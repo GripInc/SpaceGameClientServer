@@ -6,7 +6,6 @@
 
 #include <SdkTrays.h>
 
-class GameController;
 class StationSettings;
 class ScreenSettings;
 class StationView;
@@ -17,10 +16,6 @@ class StationController : public OgreBites::SdkTrayListener, public OIS::KeyList
 public:
 	static const std::string TARGET_SPECIAL_LAUNCH;
 
-	StationController(GameController* _gameController)
-		: mGameController(_gameController)
-	{}
-
 	~StationController();
 
 	//Init
@@ -29,8 +24,7 @@ public:
 	void clean();
 
 protected:
-	GameController* mGameController = nullptr;
-
+	
 	OgreBites::SdkTrayManager* mTrayManager = nullptr;
 	OgreBites::Label* mNextScreenLabel = nullptr;
 

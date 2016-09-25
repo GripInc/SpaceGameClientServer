@@ -7,14 +7,17 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SpaceGameClientServer", "Sp
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		Debug|Win32 = Debug|Win32
+		ClientDebug|Win32 = ClientDebug|Win32
 		Release|Win32 = Release|Win32
+		ServerDebug|Win32 = ServerDebug|Win32
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{14B89C88-AA5A-4BD5-AD0B-7689C2F172BE}.Debug|Win32.ActiveCfg = Debug|Win32
-		{14B89C88-AA5A-4BD5-AD0B-7689C2F172BE}.Debug|Win32.Build.0 = Debug|Win32
+		{14B89C88-AA5A-4BD5-AD0B-7689C2F172BE}.ClientDebug|Win32.ActiveCfg = ClientDebug|Win32
+		{14B89C88-AA5A-4BD5-AD0B-7689C2F172BE}.ClientDebug|Win32.Build.0 = ClientDebug|Win32
 		{14B89C88-AA5A-4BD5-AD0B-7689C2F172BE}.Release|Win32.ActiveCfg = DebugClient|Win32
 		{14B89C88-AA5A-4BD5-AD0B-7689C2F172BE}.Release|Win32.Build.0 = DebugClient|Win32
+		{14B89C88-AA5A-4BD5-AD0B-7689C2F172BE}.ServerDebug|Win32.ActiveCfg = ServerDebug|Win32
+		{14B89C88-AA5A-4BD5-AD0B-7689C2F172BE}.ServerDebug|Win32.Build.0 = ServerDebug|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

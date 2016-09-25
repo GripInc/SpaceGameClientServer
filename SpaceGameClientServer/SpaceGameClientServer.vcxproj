@@ -1,6 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="ClientDebug|Win32">
+      <Configuration>ClientDebug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
     <ProjectConfiguration Include="DebugClient|Win32">
       <Configuration>DebugClient</Configuration>
       <Platform>Win32</Platform>
@@ -11,6 +15,10 @@
     </ProjectConfiguration>
     <ProjectConfiguration Include="Release|Win32">
       <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="ServerDebug|Win32">
+      <Configuration>ServerDebug</Configuration>
       <Platform>Win32</Platform>
     </ProjectConfiguration>
     <ProjectConfiguration Include="test2|Win32">
@@ -26,6 +34,18 @@
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ServerDebug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ClientDebug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v140</PlatformToolset>
@@ -53,6 +73,12 @@
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='ServerDebug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='ClientDebug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='test2|Win32'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
@@ -61,6 +87,12 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ServerDebug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ClientDebug|Win32'">
     <LinkIncremental>true</LinkIncremental>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='test2|Win32'">
@@ -76,6 +108,44 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_CRT_SECURE_NO_WARNINGS;_WINSOCK_DEPRECATED_NO_WARNINGS;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>F:\programmation\tinyxml2;$(ProjectDir)\include;$(OGRE_HOME)\include\OGRE;$(OGRE_HOME)\include\OGRE\Overlay;$(OGRE_HOME)\include\OIS;C:\Program Files (x86)\BULLET_PHYSICS\include\bullet;$(RAKNET_HOME)\Source;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>OgreMain_d.lib;OgreOverlay_d.lib;ws2_32.lib;OIS_d.lib;LinearMath_Debug.lib;BulletCollision_Debug.lib;BulletDynamics_Debug.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(OGRE_HOME)\lib\Debug;$(OGRE_HOME)\bin\debug;F:\programmation\bullet-2.82-r2704\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ServerDebug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_CRT_SECURE_NO_WARNINGS;_WINSOCK_DEPRECATED_NO_WARNINGS;_DEBUG;_WINDOWS;_GAME_SERVER;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>F:\programmation\tinyxml2;$(ProjectDir)\include;$(OGRE_HOME)\include\OGRE;$(OGRE_HOME)\include\OGRE\Overlay;$(OGRE_HOME)\include\OIS;C:\Program Files (x86)\BULLET_PHYSICS\include\bullet;$(RAKNET_HOME)\Source;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>OgreMain_d.lib;OgreOverlay_d.lib;ws2_32.lib;OIS_d.lib;LinearMath_Debug.lib;BulletCollision_Debug.lib;BulletDynamics_Debug.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(OGRE_HOME)\lib\Debug;$(OGRE_HOME)\bin\debug;F:\programmation\bullet-2.82-r2704\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ClientDebug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_CRT_SECURE_NO_WARNINGS;_WINSOCK_DEPRECATED_NO_WARNINGS;_DEBUG;_WINDOWS;_GAME_CLIENT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>F:\programmation\tinyxml2;$(ProjectDir)\include;$(OGRE_HOME)\include\OGRE;$(OGRE_HOME)\include\OGRE\Overlay;$(OGRE_HOME)\include\OIS;C:\Program Files (x86)\BULLET_PHYSICS\include\bullet;$(RAKNET_HOME)\Source;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -284,15 +354,22 @@
     <ClInclude Include="..\..\..\raknet\Source\_FindFirst.h" />
     <ClInclude Include="..\..\..\tinyxml2\tinyxml2.h" />
     <ClInclude Include="include\ApplicationMaster.h" />
+    <ClInclude Include="include\controller\CameraController.h" />
+    <ClInclude Include="include\controller\ClientGameController.h" />
+    <ClInclude Include="include\controller\ClientSectorController.h" />
     <ClInclude Include="include\controller\GameController.h" />
     <ClInclude Include="include\controller\InputController.h" />
     <ClInclude Include="include\controller\SectorController.h" />
+    <ClInclude Include="include\controller\ServerGameController.h" />
+    <ClInclude Include="include\controller\ServerSectorController.h" />
     <ClInclude Include="include\controller\ShipInputHandler.h" />
     <ClInclude Include="include\controller\StationController.h" />
     <ClInclude Include="include\controller\UIController.h" />
     <ClInclude Include="include\factories\TriangleMeshFactory.h" />
+    <ClInclude Include="include\manager\InputHistoryManager.h" />
     <ClInclude Include="include\manager\LoggerManager.h" />
     <ClInclude Include="include\manager\StateManager.h" />
+    <ClInclude Include="include\model\ClientSector.h" />
     <ClInclude Include="include\model\deserialized\AccumulatorsSettings.h" />
     <ClInclude Include="include\model\deserialized\CollisionShapeSettings.h" />
     <ClInclude Include="include\model\deserialized\DirectionalsSettings.h" />
@@ -325,20 +402,25 @@
     <ClInclude Include="include\model\ObjectPart.h" />
     <ClInclude Include="include\model\PlanetObject.h" />
     <ClInclude Include="include\model\PlayerData.h" />
+    <ClInclude Include="include\model\PlayersData.h" />
     <ClInclude Include="include\model\Sector.h" />
     <ClInclude Include="include\model\SectorObject.h" />
+    <ClInclude Include="include\model\ServerSector.h" />
     <ClInclude Include="include\model\Ship.h" />
     <ClInclude Include="include\model\ShipEngine.h" />
     <ClInclude Include="include\model\ShipPartCollisionShape.h" />
     <ClInclude Include="include\model\Shot.h" />
     <ClInclude Include="include\model\StaticObject.h" />
     <ClInclude Include="include\model\StationScreen.h" />
+    <ClInclude Include="include\network\ClientNetworkService.h" />
     <ClInclude Include="include\network\IConnectionReadyListener.h" />
     <ClInclude Include="include\network\INetworkService.h" />
     <ClInclude Include="include\network\NetworkLayer.h" />
     <ClInclude Include="include\network\NetworkService.h" />
+    <ClInclude Include="include\network\ServerNetworkService.h" />
     <ClInclude Include="include\SpaceGameTypes.h" />
     <ClInclude Include="include\utils\BulletDebugDraw.h" />
+    <ClInclude Include="include\utils\BulletCallBacks.h" />
     <ClInclude Include="include\utils\json\IJsonSerializable.h" />
     <ClInclude Include="include\utils\json\json-forwards.h" />
     <ClInclude Include="include\utils\json\json.h" />
@@ -465,15 +547,22 @@
     <ClCompile Include="..\..\..\raknet\Source\_FindFirst.cpp" />
     <ClCompile Include="..\..\..\tinyxml2\tinyxml2.cpp" />
     <ClCompile Include="src\ApplicationMaster.cpp" />
+    <ClCompile Include="src\controller\CameraController.cpp" />
+    <ClCompile Include="src\controller\ClientGameController.cpp" />
+    <ClCompile Include="src\controller\ClientSectorController.cpp" />
     <ClCompile Include="src\controller\GameController.cpp" />
     <ClCompile Include="src\controller\InputController.cpp" />
     <ClCompile Include="src\controller\SectorController.cpp" />
+    <ClCompile Include="src\controller\ServerGameController.cpp" />
+    <ClCompile Include="src\controller\ServerSectorController.cpp" />
     <ClCompile Include="src\controller\ShipInputHandler.cpp" />
     <ClCompile Include="src\controller\StationController.cpp" />
     <ClCompile Include="src\controller\UIController.cpp" />
     <ClCompile Include="src\factories\TriangleMeshFactory.cpp" />
     <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\manager\InputHistoryManager.cpp" />
     <ClCompile Include="src\manager\LoggerManager.cpp" />
+    <ClCompile Include="src\model\ClientSector.cpp" />
     <ClCompile Include="src\model\Directional.cpp" />
     <ClCompile Include="src\model\DynamicObject.cpp" />
     <ClCompile Include="src\model\Engine.cpp" />
@@ -482,16 +571,21 @@
     <ClCompile Include="src\model\MyMotionState.cpp" />
     <ClCompile Include="src\model\ObjectPart.cpp" />
     <ClCompile Include="src\model\PlanetObject.cpp" />
+    <ClCompile Include="src\model\PlayersData.cpp" />
     <ClCompile Include="src\model\Sector.cpp" />
     <ClCompile Include="src\model\SectorObject.cpp" />
+    <ClCompile Include="src\model\ServerSector.cpp" />
     <ClCompile Include="src\model\Ship.cpp" />
     <ClCompile Include="src\model\ShipPartCollisionShape.cpp" />
     <ClCompile Include="src\model\Shot.cpp" />
     <ClCompile Include="src\model\StaticObject.cpp" />
     <ClCompile Include="src\model\StationScreen.cpp" />
+    <ClCompile Include="src\network\ClientNetworkService.cpp" />
     <ClCompile Include="src\network\NetworkLayer.cpp" />
     <ClCompile Include="src\network\NetworkService.cpp" />
+    <ClCompile Include="src\network\ServerNetworkService.cpp" />
     <ClCompile Include="src\utils\BulletDebugDraw.cpp" />
+    <ClCompile Include="src\utils\BulletCallBacks.cpp" />
     <ClCompile Include="src\utils\json\jsoncpp.cpp" />
     <ClCompile Include="src\utils\OgreUtils.cpp" />
     <ClCompile Include="src\utils\StringUtils.cpp" />

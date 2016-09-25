@@ -56,14 +56,16 @@ void Ship::instantiateObject(Ogre::SceneManager* _sceneManager, btDiscreteDynami
 	instantiateObjectParts();
 
 	instantiateCollisionObject();
+}
 
+void Ship::attachCamera(Ogre::SceneNode* _cameraSceneNode)
+{
 	const ShipSettings* shipSettings = static_cast<const ShipSettings*>(mObjectSettings);
 
 	//Attach camera node to ship node
-	Ogre::SceneNode* cameraSceneNode = PlayerCamera::getInstance().getCameraNode();
-	mSceneNode->addChild(cameraSceneNode);
-	cameraSceneNode->setPosition(Ogre::Vector3(shipSettings->mHeadPosX, shipSettings->mHeadPosY, shipSettings->mHeadPosZ));
-	cameraSceneNode->setOrientation(Ogre::Quaternion::IDENTITY);
+	mSceneNode->addChild(_cameraSceneNode);
+	_cameraSceneNode->setPosition(Ogre::Vector3(shipSettings->mHeadPosX, shipSettings->mHeadPosY, shipSettings->mHeadPosZ));
+	_cameraSceneNode->setOrientation(Ogre::Quaternion::IDENTITY);
 }
 
 void Ship::instantiateObjectParts()
@@ -247,3 +249,23 @@ void Ship::setState(SectorTick _tick)
 	
 //	return true;//result;
 //}
+
+void Ship::serialize(RakNet::BitStream& _bitStream) const
+{
+	//Unique id
+	_bitStream.Write(mUniqueId);
+
+	//State
+	std::vector<std::pair<int, float> > hardpointsState;
+	int hardpointsSize = mHardPoints.size();
+	for (int i = 0; i < hardpointsSize; ++i)
+	{
+		if (mHardPoints[i]->isUsed())
+		{
+			hardpointsState.push_back(std::make_pair(mHardPoints[i]->getIndex(), mHardPoints[i]->mElapsedTime));
+		}
+	}
+
+	ShipState shipState(mRigidBody, mCurrentRollForce, mCurrentYawForce, mCurrentPitchForce, mEnginePotentialForce, hardpointsState);
+	shipState.serialize(_bitStream);
+}

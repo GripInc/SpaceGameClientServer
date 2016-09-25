@@ -107,10 +107,15 @@ void ApplicationMaster::startApplication()
 
 	//Init network
 	mNetworkLayer.init();
-	mNetworkLayer.connect("127.0.0.1");
-	
+#	ifdef _GAME_CLIENT
 	//Init gameController
 	mGameController.init(GAME_SETTINGS_FILE_PATH, mRoot, mWindow, sceneManager, mNetworkLayer);
-
+	mNetworkLayer.connect("127.0.0.1");
+#	else
+	//Init gameController
+	mGameController.init(PLAYERS_DATA_FILE_PATH, GAME_SETTINGS_FILE_PATH, mRoot, mWindow, sceneManager, mNetworkLayer);
+	mGameController.startGame();
+#	endif
+	
     mRoot->startRendering();
 }

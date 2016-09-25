@@ -1,6 +1,6 @@
 #include "network/NetworkLayer.h"
 
-#include "network/INetworkService.h"
+#include "network/NetworkService.h"
 #include "network/IConnectionReadyListener.h"
 
 #include "BitStream.h"
@@ -13,7 +13,7 @@ namespace
 	const std::string LOG_CLASS_TAG = "NetworkLayer";
 }
 
-NetworkLayer::NetworkLayer() : mIsConnected(false)
+NetworkLayer::NetworkLayer()
 {
 	mPeer = RakNet::RakPeerInterface::GetInstance();
 	mPeer->SetOccasionalPing(true);
@@ -24,9 +24,18 @@ NetworkLayer::NetworkLayer() : mIsConnected(false)
 
 void NetworkLayer::init()
 {
+#	ifdef _GAME_CLIENT
 	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "init", "Starting the client.", true);
+	RakNet::SocketDescriptor socketDescriptor;
+	mPeer->Startup(1, &socketDescriptor, 1); //TODO use choosed options
+#	else
+	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "init", "Starting the server.", true);
 
-	mPeer->Startup(1, &mSocketDescriptor, 1); //TODO use choosed options
+	RakNet::SocketDescriptor socketDescriptor(SERVER_PORT, 0); //TODO set real values
+	mPeer->Startup(MAX_CLIENTS, &socketDescriptor, 1); //TODO set real values
+	// Make server accept incoming connections from the clients
+	mPeer->SetMaximumIncomingConnections(MAX_CLIENTS);
+#	endif
 }
 
 void NetworkLayer::connect(const char* _serverAddress)
@@ -51,46 +60,67 @@ void NetworkLayer::connect(const char* _serverAddress)
 
 void NetworkLayer::getNetworkData()
 {
-	RakNet::Packet *packet;
+	RakNet::Packet* packet = nullptr;
 
-	for (packet = mPeer->Receive(); packet != NULL; mPeer->DeallocatePacket(packet), packet = mPeer->Receive())
-	{
+	for (packet = mPeer->Receive(); packet != nullptr; mPeer->DeallocatePacket(packet), packet = mPeer->Receive())
 		handlePacket(packet);
-	}
 }
-
-void NetworkLayer::setIsConnected(bool _value)
-{
-	mConnectionReadyListener->notifyIsConnected(_value);
-
-	mIsConnected = _value;
-}
-
-//RakNet::Time NetworkLayer::getClockDifferentialToServer() const
-//{
-	//return mPeer->getClockDifferential(mServerAddress);
-//}
 
 void NetworkLayer::handlePacket(RakNet::Packet* _packet)
 {
+	static const std::string LOG_METHOD_TAG = "handlePacket";
+
 	switch (_packet->data[0])
 	{
+	//////////////////////////////////////////
+	//////////Client side messages////////////
+	//////////////////////////////////////////
 	case ID_CONNECTION_REQUEST_ACCEPTED:
-		LoggerManager::getInstance().logI(LOG_CLASS_TAG, "handlePacket", "Our connection request has been accepted.", false);
+		LoggerManager::getInstance().logI(LOG_CLASS_TAG, LOG_METHOD_TAG, "Our connection request has been accepted.", false);
 		mServerAddress = _packet->systemAddress;
-		setIsConnected(true);
+		mIsConnected = true;
+		mConnectionReadyListener->notifyIsConnected(mIsConnected);
 		break;
 	case ID_NO_FREE_INCOMING_CONNECTIONS:
-		LoggerManager::getInstance().logI(LOG_CLASS_TAG, "handlePacket", "The server is full.", false);
-		setIsConnected(false);
+		LoggerManager::getInstance().logI(LOG_CLASS_TAG, LOG_METHOD_TAG, "The server is full.", false);
+		mIsConnected = false;
+		mConnectionReadyListener->notifyIsConnected(mIsConnected);
 		break;
+	//////////////////////////////////////////
+	////////Client/Server side messages///////
+	//////////////////////////////////////////
 	case ID_DISCONNECTION_NOTIFICATION:
-		LoggerManager::getInstance().logI(LOG_CLASS_TAG, "handlePacket", "We have been disconnected.", false);
-		setIsConnected(false);
+#		ifdef _GAME_CLIENT
+		LoggerManager::getInstance().logI(LOG_CLASS_TAG, LOG_METHOD_TAG, "We have been disconnected.", false);
+		mIsConnected = false;
+		mConnectionReadyListener->notifyIsConnected(mIsConnected);
+#		else
+		LoggerManager::getInstance().logI(LOG_CLASS_TAG, LOG_METHOD_TAG, "A client has disconnected.", true);
+#		endif
 		break;
 	case ID_CONNECTION_LOST:
-		LoggerManager::getInstance().logI(LOG_CLASS_TAG, "handlePacket", "Connection lost.", false);
-		setIsConnected(false);
+#		ifdef _GAME_CLIENT
+		LoggerManager::getInstance().logI(LOG_CLASS_TAG, LOG_METHOD_TAG, "Connection lost.", false);
+		mIsConnected = false;
+		mConnectionReadyListener->notifyIsConnected(mIsConnected);
+#		else
+		LoggerManager::getInstance().logI(LOG_CLASS_TAG, LOG_METHOD_TAG, "A client lost the connection.", true);
+#		endif
+		break;
+	//////////////////////////////////////////
+	//////////Server side messages////////////
+	//////////////////////////////////////////
+	case ID_REMOTE_DISCONNECTION_NOTIFICATION:
+		LoggerManager::getInstance().logI(LOG_CLASS_TAG, LOG_METHOD_TAG, "A client has disconnected.", true);
+		break;
+	case ID_REMOTE_CONNECTION_LOST:
+		LoggerManager::getInstance().logI(LOG_CLASS_TAG, LOG_METHOD_TAG, "A client has lost the connection.", true);
+		break;
+	case ID_REMOTE_NEW_INCOMING_CONNECTION:
+		LoggerManager::getInstance().logI(LOG_CLASS_TAG, LOG_METHOD_TAG, "A client has connected.", true);
+		break;
+	case ID_NEW_INCOMING_CONNECTION:
+		LoggerManager::getInstance().logI(LOG_CLASS_TAG, LOG_METHOD_TAG, "A connection is incoming.", true);
 		break;
 	default:
 		//Packets destinated to be treated by network service
@@ -100,7 +130,7 @@ void NetworkLayer::handlePacket(RakNet::Packet* _packet)
 }
 
 //Send functions
-void NetworkLayer::send(const RakNet::RakString& _message, PacketPriority _priority, PacketReliability _reliability, NetworkChannel _orderingChannel, RakNet::MessageID _messageType)
+void NetworkLayer::clientSend(const RakNet::RakString& _message, PacketPriority _priority, PacketReliability _reliability, NetworkChannel _orderingChannel, RakNet::MessageID _messageType)
 {
 	//TODO use compressed
 
@@ -110,11 +140,29 @@ void NetworkLayer::send(const RakNet::RakString& _message, PacketPriority _prior
 	mPeer->Send(&bitStreamOut, _priority, _reliability, _orderingChannel, mServerAddress, false);
 }
 
-void NetworkLayer::send(RakNet::BitStream& _bitStream, PacketPriority _priority, PacketReliability _reliability, NetworkChannel _orderingChannel, RakNet::MessageID _messageType) const
+void NetworkLayer::clientSend(RakNet::BitStream& _bitStream, PacketPriority _priority, PacketReliability _reliability, NetworkChannel _orderingChannel, RakNet::MessageID _messageType) const
 {
 	RakNet::BitStream bitStreamOut;
 	bitStreamOut.Write((RakNet::MessageID)_messageType);
 	bitStreamOut.Write(_bitStream, _bitStream.GetNumberOfBitsUsed() - _bitStream.GetReadOffset());
 	mPeer->Send(&bitStreamOut, _priority, _reliability, _orderingChannel, mServerAddress, false);
+}
+
+void NetworkLayer::serverSend(const RakNet::AddressOrGUID& _client, const RakNet::RakString& _message, PacketPriority _priority, PacketReliability _reliability, NetworkChannel _orderingChannel, RakNet::MessageID _messageType) const
+{
+	//TODO use compressed? -> seems compressed for understandable words only
+
+	RakNet::BitStream bitStreamOut;
+	bitStreamOut.Write((RakNet::MessageID)_messageType);
+	bitStreamOut.Write(_message);
+	mPeer->Send(&bitStreamOut, _priority, _reliability, _orderingChannel, _client, false);
+}
+
+void NetworkLayer::serverSend(const RakNet::AddressOrGUID& _client, RakNet::BitStream& _bitStream, PacketPriority _priority, PacketReliability _reliability, NetworkChannel _orderingChannel, RakNet::MessageID _messageType) const
+{
+	RakNet::BitStream bitStreamOut;
+	bitStreamOut.Write((RakNet::MessageID)_messageType);
+	bitStreamOut.Write(_bitStream, _bitStream.GetNumberOfBitsUsed() - _bitStream.GetReadOffset());
+	mPeer->Send(&bitStreamOut, _priority, _reliability, _orderingChannel, _client, false);
 }
 //End send functions
