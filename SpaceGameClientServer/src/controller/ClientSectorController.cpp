@@ -22,7 +22,7 @@ void ClientSectorController::createSector(const std::string& _sectorName, Ogre::
 		delete mCurrentSector;
 	}
 
-	mCurrentSector = new ClientSector(_sceneManager, _sectorUpdateRate, _startingSectorTick);
+	mCurrentSector = new ClientSector(_sectorName, _sceneManager, _sectorUpdateRate, _startingSectorTick);
 
 	// Create the Scene
 	mSectorView = new SectorView(_sceneManager);
@@ -38,7 +38,7 @@ void ClientSectorController::createSector(const std::string& _sectorName, Ogre::
 	}*/
 
 	//Instantiate sector objects
-	mCurrentSector->instantiateObjects(_sectorName);
+	mCurrentSector->instantiateObjects();
 }
 
 void ClientSectorController::instantiatePlayerShip(Ship& _playerShip, const std::string& _shipId, const Ogre::Vector3& _position, const Ogre::Quaternion& _orientation, UniqueId _uniqueId, RakNet::RakNetGUID _rakNetGUID, Ogre::SceneNode* _cameraSceneNode)

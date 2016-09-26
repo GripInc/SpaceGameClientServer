@@ -88,10 +88,12 @@ bool MyContactCallback(btManifoldPoint& cp, const btCollisionObjectWrapper* colO
 	return true;
 }
 
-Sector::Sector(Ogre::SceneManager* _sceneManager, float _sectorUpdateRate)
+Sector::Sector(const std::string& _sectorName, Ogre::SceneManager* _sceneManager, float _sectorUpdateRate)
 	: mSceneManager(_sceneManager),
 	mSectorUpdateRate(_sectorUpdateRate)
 {
+	mSectorSettings = GameSettings::getInstance().getSector(_sectorName);
+
 	//Create dynamic world
 	mBroadphase = new btDbvtBroadphase();
     mCollisionConfiguration = new btDefaultCollisionConfiguration();
@@ -113,37 +115,35 @@ Sector::Sector(Ogre::SceneManager* _sceneManager, float _sectorUpdateRate)
 	mDisplayDebug = false;
 }
 
-void Sector::instantiateObjects(const std::string& _sectorName)
+void Sector::instantiateObjects()
 {
-	const SectorSettings* sectorSettings = GameSettings::getInstance().getSector(_sectorName);
-
 	//Fill in objects
-	if(sectorSettings)
+	if(mSectorSettings)
 	{
 		//Static objects
-		for(int i = 0; i < sectorSettings->mStaticObjects.size(); ++i)
+		for(int i = 0; i < mSectorSettings->mStaticObjects.size(); ++i)
 		{
-			mStaticObjects.push_back(new StaticObject(&sectorSettings->mStaticObjects[i], mSceneManager, mDynamicWorld));
+			mStaticObjects.push_back(new StaticObject(&mSectorSettings->mStaticObjects[i], mSceneManager, mDynamicWorld));
 			mStaticObjects.back()->instantiateObject();
 		}
 
 		//Planet objects
-		for(int i = 0; i < sectorSettings->mPlanetObjects.size(); ++i)
+		for(int i = 0; i < mSectorSettings->mPlanetObjects.size(); ++i)
 		{
-			mPlanetObjects.push_back(new PlanetObject(&sectorSettings->mPlanetObjects[i], mSceneManager));
+			mPlanetObjects.push_back(new PlanetObject(&mSectorSettings->mPlanetObjects[i], mSceneManager));
 			mPlanetObjects.back()->instantiateObject();
 		}
 
 		//Gate objects
-		for(int i = 0; i < sectorSettings->mGateObjects.size(); ++i)
+		for(int i = 0; i < mSectorSettings->mGateObjects.size(); ++i)
 		{
-			mGateObjects.push_back(new SectorObject(&sectorSettings->mGateObjects[i], mSceneManager));
+			mGateObjects.push_back(new SectorObject(&mSectorSettings->mGateObjects[i], mSceneManager));
 			mGateObjects.back()->instantiateObject();
 		}
 	}
 	else
 	{
-		LoggerManager::getInstance().logE(LOG_CLASS_TAG, "instantiateObjects", "Sector settings not found for sector : " + _sectorName);
+		LoggerManager::getInstance().logE(LOG_CLASS_TAG, "instantiateObjects", "Sector settings not found for sector : " + mSectorSettings->mName);
 		assert(false);
 	}
 }

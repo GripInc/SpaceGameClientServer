@@ -34,8 +34,8 @@ namespace RakNet
 class ClientSector : public Sector
 {
 public:
-	ClientSector(Ogre::SceneManager* _sceneManager, float _sectorUpdateRate, SectorTick _startingSectorTick)
-		: Sector(_sceneManager, _sectorUpdateRate)
+	ClientSector(const std::string& _sectorName, Ogre::SceneManager* _sceneManager, float _sectorUpdateRate, SectorTick _startingSectorTick)
+		: Sector(_sectorName, _sceneManager, _sectorUpdateRate)
 	{
 		mSectorTick = _startingSectorTick;
 	}
@@ -51,7 +51,7 @@ public:
 	Ship* getPlayerShip() { return mPlayerShip; }
 
 	//Unique id generator
-	//Client regenrated unique ids are negative value, until server tells client wich unique it should use (positive one)
+	//Client regenerated unique ids are negative value, until server tells client wich unique it should use (positive one)
 	UniqueId getTemporaryNextUniqueId() const { return sTemporaryUniqueId--; }
 
 	void receivedSectorState(RakNet::BitStream& _data);

@@ -32,8 +32,8 @@ namespace Ogre
 class ServerSector : public Sector
 {
 public:
-	ServerSector(Ogre::SceneManager* _sceneManager, float _sectorUpdateRate, unsigned int _maxSectorTickRewindAmount)
-		: Sector(_sceneManager, _sectorUpdateRate),
+	ServerSector(const std::string& _sectorName, Ogre::SceneManager* _sceneManager, float _sectorUpdateRate, unsigned int _maxSectorTickRewindAmount)
+		: Sector(_sectorName, _sceneManager, _sectorUpdateRate),
 		mClientsInput(_maxSectorTickRewindAmount)
 	{}
 	

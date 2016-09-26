@@ -37,11 +37,11 @@ class Sector
 public:
 	static const float epsilon;
 
-	Sector(Ogre::SceneManager* _sceneManager, float _sectorUpdateRate);
+	Sector(const std::string& _sectorName, Ogre::SceneManager* _sceneManager, float _sectorUpdateRate);
 	~Sector();
 
 	//Init sector and static objects
-	void instantiateObjects(const std::string& _sectorName);
+	void instantiateObjects();
 
 	//Getters
 	std::vector<StaticObject*>& getStaticObjects() { return mStaticObjects;}
@@ -63,7 +63,11 @@ public:
 	btDispatcher* getDynamicWorldDispatcher() const { return mDynamicWorld->getDispatcher(); }
 
 protected:
+	///The Ogre scene manager
 	Ogre::SceneManager* mSceneManager = nullptr;
+
+	///The sector settings
+	const SectorSettings* mSectorSettings = nullptr;
 
 	//Sector objects
 	std::vector<StaticObject*> mStaticObjects;
