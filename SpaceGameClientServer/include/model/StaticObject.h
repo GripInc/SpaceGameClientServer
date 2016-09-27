@@ -13,6 +13,7 @@ class StaticObjectSettings;
 class btCompoundShape;
 class btCollisionShape;
 class btRigidBody;
+class btDiscreteDynamicsWorld;
 
 class StaticObject : public SectorObject
 {

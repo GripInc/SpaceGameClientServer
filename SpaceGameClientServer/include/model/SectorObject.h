@@ -8,9 +8,6 @@
 
 #include "LinearMath/btTransform.h"
 
-//Forward declarations
-class btDiscreteDynamicsWorld;
-
 class SectorObjectSettings;
 
 class SectorObject
