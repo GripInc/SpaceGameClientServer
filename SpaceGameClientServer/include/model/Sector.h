@@ -59,9 +59,6 @@ public:
 	void switchDisplayDebug();
 	void switchDisplay();
 
-	//DEBUG
-	btDispatcher* getDynamicWorldDispatcher() const { return mDynamicWorld->getDispatcher(); }
-
 protected:
 	///The Ogre scene manager
 	Ogre::SceneManager* mSceneManager = nullptr;
