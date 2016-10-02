@@ -41,9 +41,9 @@ void ServerSectorController::createSector(const std::string& _sectorName, Ogre::
 	mCurrentSector->instantiateObjects();
 }
 
-void ServerSectorController::instantiateClientShip(const RakNet::RakNetGUID& _id, Ship& _ship, const std::string& _shipId, const Ogre::Vector3& _position, const Ogre::Quaternion& _orientation, UniqueId& _shipUniqueId, SectorTick& _sectorTick)
+void ServerSectorController::instantiateClientShip(const RakNet::RakNetGUID& _id, Ship& _ship, const Ogre::Vector3& _position, const Ogre::Quaternion& _orientation, UniqueId& _shipUniqueId, SectorTick& _sectorTick)
 {
-	return mCurrentSector->instantiateClientShip(_id, _ship, _shipId, _orientation, _position, _shipUniqueId, _sectorTick);
+	return mCurrentSector->instantiateClientShip(_id, _ship, _orientation, _position, _shipUniqueId, _sectorTick);
 }
 
 void ServerSectorController::updateSector()

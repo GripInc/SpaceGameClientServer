@@ -3,12 +3,12 @@
 
 #include "model/SectorObject.h"
 #include "model/MyMotionState.h"
+#include "model/ObjectPart.h"
 
 #include "model/deserialized/StaticObjectSettings.h"
 
 #include "LinearMath/btAlignedObjectArray.h"
 
-class ObjectPart;
 class StaticObjectSettings;
 class btCompoundShape;
 class btCollisionShape;
@@ -20,24 +20,21 @@ class StaticObject : public SectorObject
 public:
 	const static float DEFAULT_RESTITUTION_VALUE;
 	
-	StaticObject() {}
+	void init(const SectorObjectSettings* _sectorObjectSettings, Ogre::SceneManager* _sceneManager, btDiscreteDynamicsWorld* _dynamicWorld)
+	{
+		SectorObject::init(_sectorObjectSettings, _sceneManager);
 
-	StaticObject(const StaticObjectSettings* _staticObjectSettings, Ogre::SceneManager* _sceneManager, btDiscreteDynamicsWorld* _dynamicWorld) 
-		: SectorObject(_staticObjectSettings, _sceneManager),
-		mRigidBody(NULL),
-		mDynamicWorld(_dynamicWorld),
-		mCompoundShape(NULL),
-		mMyMotionState(NULL)
-	{}
+		mDynamicWorld = _dynamicWorld;
+	}
 
-    ~StaticObject();
+    virtual ~StaticObject();
 
-	virtual void instantiateObject();
+	virtual void instantiateObject() override;
 
-	const btAlignedObjectArray<ObjectPart*>& getObjectParts() const { return mObjectParts; }
+	const btAlignedObjectArray<ObjectPart>& getObjectParts() const { return mObjectParts; }
 	btRigidBody* getRigidBody() const { return mRigidBody; }
 
-	virtual void destroy();
+	virtual void destroy() override;
 
 	void forceWorldTransform(const btTransform& _worldTransform);
 
@@ -53,7 +50,7 @@ protected:
 
 	btRigidBody* createRigidBody(const btTransform& _startTransform, btCollisionShape* _shape, MyMotionState* _myMotionState, float _mass, const btVector3& _overrideInertia = btVector3(0.f, 0.f, 0.f));
 
-	btAlignedObjectArray<ObjectPart*> mObjectParts;
+	btAlignedObjectArray<ObjectPart> mObjectParts;
 };
 
 #endif //_STATIC_OBJECT_H_

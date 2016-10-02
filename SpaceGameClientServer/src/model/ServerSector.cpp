@@ -29,19 +29,20 @@ namespace
 
 UniqueId ServerSector::sUniqueId = -1;
 
-void ServerSector::instantiateClientShip(const RakNet::RakNetGUID& _id, Ship& _ship, const std::string& _shipId, const Ogre::Quaternion& _orientation, const Ogre::Vector3& _position, UniqueId& _shipUniqueId, SectorTick& _sectorTick)
+void ServerSector::instantiateClientShip(const RakNet::RakNetGUID& _id, Ship& _ship, const Ogre::Quaternion& _orientation, const Ogre::Vector3& _position, UniqueId& _shipUniqueId, SectorTick& _sectorTick)
 {
 	std::map<RakNet::RakNetGUID, Ship*>::const_iterator foundItem = mShips.find(_id);
 	if (foundItem == mShips.end())
 	{
 		_sectorTick = mSectorTick;
 		_shipUniqueId = getNextUniqueId();
-		_ship.instantiateObject(mSceneManager, mDynamicWorld, _shipUniqueId);
+		_ship.init(mSceneManager, mDynamicWorld, _shipUniqueId);
+		_ship.instantiateObject();
 		_ship.forceWorldTransform(btTransform(convert(_orientation), convert(_position)));
 		mShips[_id] = &_ship;
 		mUsersIds.insert(_id);
 
-		LoggerManager::getInstance().logI(LOG_CLASS_TAG, "instantiateClientShip", "_sectorTick : " + StringUtils::toStr(_sectorTick) + "; _shipUniqueId : " + StringUtils::toStr(_shipUniqueId) + "; (GUID)_id : " + std::string(_id.ToString()) + "; _shipId : " + _shipId, false);
+		LoggerManager::getInstance().logI(LOG_CLASS_TAG, "instantiateClientShip", "_sectorTick : " + StringUtils::toStr(_sectorTick) + "; _shipUniqueId : " + StringUtils::toStr(_shipUniqueId) + "; (GUID)_id : " + std::string(_id.ToString()) + "; _shipId : " + _ship.getName(), false);
 
 		//We want at least one neutral input
 		addInput(_id, mSectorTick, InputState());
@@ -191,120 +192,7 @@ void ServerSector::updateShipsSystems(float _deltaTime, const ClientsInputMap& _
 			assert(false);
 		}
 
-		///////////////////
-		//Handling thrust//
-		///////////////////
-		if (clientInput.mZKeyPressed)
-			clientShip->getEngine().mWantedThrust += clientShip->getEngine().getThrustSensitivity() * _deltaTime;
-
-		if (clientInput.mSKeyPressed)
-			clientShip->getEngine().mWantedThrust -= clientShip->getEngine().getThrustSensitivity() * _deltaTime;
-
-		if (clientInput.mAKeyPressed)
-			clientShip->getEngine().mWantedThrust = clientShip->getEngine().getThrustMaxValue();
-
-		if (clientInput.mQKeyPressed)
-			clientShip->getEngine().mWantedThrust = 0;
-
-		//Checking thrust bounds values
-		if (clientShip->getEngine().mWantedThrust > clientShip->getEngine().getThrustMaxValue())
-			clientShip->getEngine().mWantedThrust = clientShip->getEngine().getThrustMaxValue();
-		if (clientShip->getEngine().mWantedThrust < 0)
-			clientShip->getEngine().mWantedThrust = 0;
-
-		//Adding or removing thrust
-		float deltaThrust = clientShip->getEngine().mWantedThrust - clientShip->getEngine().mRealThrust;
-		float thrustToAdd = 0.f;
-		if (std::fabs(deltaThrust) < clientShip->getEngine().getReactivity())
-		{
-			thrustToAdd = (std::fabs(deltaThrust) / 2.f);
-		}
-		else
-		{
-			thrustToAdd = clientShip->getEngine().getReactivity();
-		}
-
-		if (deltaThrust > epsilon)
-		{
-			clientShip->getEngine().mRealThrust += thrustToAdd * _deltaTime;
-		}
-		else
-		{
-			clientShip->getEngine().mRealThrust = clientShip->getEngine().mWantedThrust;
-		}
-
-		///////////////////////////////////
-		//Applying mouse movement on ship//
-		///////////////////////////////////
-		//Yaw
-		if (!clientInput.mWKeyPressed && !clientInput.mXKeyPressed)
-			clientShip->mCurrentYawForce = 0.f;
-		else if (clientInput.mWKeyPressed)
-			clientShip->mCurrentYawForce = -clientShip->getMaxYawRate() * clientShip->getDirectional().getTurnRateMultiplier();
-		else
-			clientShip->mCurrentYawForce = clientShip->getMaxYawRate() * clientShip->getDirectional().getTurnRateMultiplier();
-
-		//Pitch
-		if (clientInput.mMouseYAbs != 0.f)
-		{
-			//Mouse control
-			clientShip->mCurrentPitchForce = clientInput.mMouseYAbs * clientShip->getMaxPitchRate() * clientShip->getDirectional().getTurnRateMultiplier();
-		}
-		else
-		{
-			//Keyboard control
-			if (!clientInput.mUpKeyPressed && !clientInput.mDownKeyPressed)
-				clientShip->mCurrentPitchForce = 0.f;
-			else if (clientInput.mUpKeyPressed)
-				clientShip->mCurrentPitchForce = -clientShip->getMaxPitchRate() * clientShip->getDirectional().getTurnRateMultiplier();
-			else
-				clientShip->mCurrentPitchForce = clientShip->getMaxPitchRate() * clientShip->getDirectional().getTurnRateMultiplier();
-		}
-
-		//Roll
-		if (clientInput.mMouseXAbs != 0.f)
-		{
-			//Mouse control
-			clientShip->mCurrentRollForce = clientInput.mMouseXAbs * clientShip->getMaxRollRate() * clientShip->getDirectional().getTurnRateMultiplier();
-		}
-		else
-		{
-			//Keyboard control
-			if (!clientInput.mLeftKeyPressed && !clientInput.mRightKeyPressed)
-				clientShip->mCurrentRollForce = 0.f;
-			else if (clientInput.mLeftKeyPressed)
-				clientShip->mCurrentRollForce = -clientShip->getMaxRollRate() * clientShip->getDirectional().getTurnRateMultiplier();
-			else
-				clientShip->mCurrentRollForce = clientShip->getMaxRollRate() * clientShip->getDirectional().getTurnRateMultiplier();
-		}
-
-		//Add shot
-		if (clientInput.mFirePressed)
-		{
-			btAlignedObjectArray<HardPoint*> hardPoints = clientShip->getHardPoints();
-			for (int i = 0; i < hardPoints.size(); ++i)
-			{
-				const WeaponSettings* weaponSettings = &hardPoints[i]->getWeaponSettings();
-				if (hardPoints[i]->isUsed() && hardPoints[i]->mElapsedTime > weaponSettings->mFireRate)
-				{
-					hardPoints[i]->mElapsedTime = 0.f;
-					ShotSettings shotSettings = hardPoints[i]->getShotSettings(); //Create a copy to be able to modify it
-					shotSettings.mInitialOrientation = clientShip->getSceneNode()->getOrientation();
-					shotSettings.mInitialPosition = clientShip->getRelativePosition(convert(hardPoints[i]->getWeaponSettings().mNoslePosition + hardPoints[i]->getPosition()));
-					addShotObject(shotSettings);
-				}
-			}
-		}
-
-		clientShip->updateHardPoints(_deltaTime);
-
-		/////////////////////////////////////////
-		//Applying ship engine power and thrust//
-		/////////////////////////////////////////
-		clientShip->mEnginePotentialForce = -clientShip->getEngine().mRealThrust;
-		clientShip->mEnginePotentialForce *= clientShip->getEngine().getPower();
-
-		clientShip->updateForces();
+		updateShipSystems(clientInput, clientShip, _deltaTime);
 	}
 }
 

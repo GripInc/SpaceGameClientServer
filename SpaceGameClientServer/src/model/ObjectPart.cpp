@@ -21,7 +21,7 @@ void ObjectPart::init(const ObjectPartSettings& _objectPartSettings)
 	mHitPoints = _objectPartSettings.mHitPoints;
 }
 
-btCollisionShape* ObjectPart::createCollisionShape(const CollisionShapeSettings& _collisionShapeSettings)
+btCollisionShape* ObjectPart::createCollisionShape(const CollisionShapeSettings& _collisionShapeSettings, void* _userPointer)
 {
 	btCollisionShape* result;
 
@@ -66,6 +66,6 @@ btCollisionShape* ObjectPart::createCollisionShape(const CollisionShapeSettings&
 		result = new btBoxShape(_collisionShapeSettings.mInitialScale / 2.f); // /2.f because bullet use half the size
 	}
 
-	result->setUserPointer(this);
+	result->setUserPointer(_userPointer);
 	return result;
 }

@@ -12,8 +12,12 @@ public:
 	//static const float MAX_ACCEPTABLE_VECTOR_3D_DELTA;
 	//static const float MAX_ACCEPTABLE_QUATERNION_DELTA;
 
-	DynamicObject() {}
-	DynamicObject(const DynamicObjectSettings* _dynamicObjectSettings, Ogre::SceneManager* _sceneManager, btDiscreteDynamicsWorld* _dynamicWorld, UniqueId _uniqueId) : StaticObject(_dynamicObjectSettings, _sceneManager, _dynamicWorld), mUniqueId(_uniqueId) {}
+	void init(const DynamicObjectSettings* _dynamicObjectSettings, Ogre::SceneManager* _sceneManager, btDiscreteDynamicsWorld* _dynamicWorld, UniqueId _uniqueId)
+	{
+		StaticObject::init(_dynamicObjectSettings, _sceneManager, _dynamicWorld);
+
+		mUniqueId = _uniqueId;
+	}
 
 	virtual void destroy();
 

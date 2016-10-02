@@ -21,25 +21,24 @@ namespace
 
 void SectorObject::instantiateObject()
 {
-	instantiateObjectSceneNode(mObjectSettings->mInitialOrientation, mObjectSettings->mInitialPosition, mObjectSettings->mInitialScale, mObjectSettings->mMesh, mObjectSettings->mName, mSceneManager);
+	instantiateObjectSceneNode(mObjectSettings->mInitialOrientation, mObjectSettings->mInitialPosition, mObjectSettings->mInitialScale, mObjectSettings->mMesh, mObjectSettings->mName);
 }
 
-void SectorObject::instantiateObjectSceneNode(const Ogre::Quaternion& _orientation, const Ogre::Vector3& _position, const Ogre::Vector3& _scale, const std::string& _mesh, const std::string& _name, Ogre::SceneManager* _sceneManager)
+void SectorObject::instantiateObjectSceneNode(const Ogre::Quaternion& _orientation, const Ogre::Vector3& _position, const Ogre::Vector3& _scale, const std::string& _mesh, const std::string& _name)
 {
-	mSceneManager = _sceneManager;
 	mName = _name;
 
 	if(mIsInstantiated)
 	{
-		LoggerManager::getInstance().logE(LOG_CLASS_TAG, "instantiateObjectSceneNode", "mIsInstantiated was not NULL.");
+		LoggerManager::getInstance().logE(LOG_CLASS_TAG, "instantiateObjectSceneNode", "mIsInstantiated was not false.");
 		assert(false);
 	}
 
 	//Create ogre scene node
-	mSceneNode = _sceneManager->getRootSceneNode()->createChildSceneNode();
+	mSceneNode = mSceneManager->getRootSceneNode()->createChildSceneNode();
 
 	//Create ogre entity and attach entity to scene node
-	mSceneNode->attachObject(createEntity(_name, _mesh, _scale, _sceneManager));
+	mSceneNode->attachObject(createEntity(_name, _mesh, _scale));
 
 	//Set up start pos and orientation
 	mSceneNode->setPosition(_position);
@@ -49,12 +48,12 @@ void SectorObject::instantiateObjectSceneNode(const Ogre::Quaternion& _orientati
 	mIsInstantiated = true;
 }
 
-Ogre::Entity* SectorObject::createEntity(const std::string& _name, const std::string& _mesh, const Ogre::Vector3& _scale, Ogre::SceneManager* _sceneManager)
+Ogre::Entity* SectorObject::createEntity(const std::string& _name, const std::string& _mesh, const Ogre::Vector3& _scale)
 {
 	Ogre::Entity* newEntity = NULL;
 	if(_mesh.empty())
 	{
-		newEntity = _sceneManager->createEntity(Ogre::SceneManager::PT_CUBE);
+		newEntity = mSceneManager->createEntity(Ogre::SceneManager::PT_CUBE);
 
 		//DEBUG
 		//mEntity->setMaterialName("Examples/SphereMappedRustySteel");
@@ -62,13 +61,13 @@ Ogre::Entity* SectorObject::createEntity(const std::string& _name, const std::st
 	}
 	else
 	{
-		newEntity = _sceneManager->createEntity(_mesh);
+		newEntity = mSceneManager->createEntity(_mesh);
 	}
 
 	return newEntity;
 }
 
-void SectorObject::addSubSceneNode(const Ogre::Quaternion& _orientation, const Ogre::Vector3& _position, const Ogre::Vector3& _scale, const std::string& _mesh, const std::string& _name, Ogre::SceneManager* _sceneManager)
+void SectorObject::addSubSceneNode(const Ogre::Quaternion& _orientation, const Ogre::Vector3& _position, const Ogre::Vector3& _scale, const std::string& _mesh, const std::string& _name)
 {
 	if(!mIsInstantiated)
 	{
@@ -80,7 +79,7 @@ void SectorObject::addSubSceneNode(const Ogre::Quaternion& _orientation, const O
 	Ogre::SceneNode* newSceneNode = mSceneNode->createChildSceneNode();
 
 	//Create ogre entity and attach entity to scene node
-	newSceneNode->attachObject(createEntity(_name, _mesh, _scale, _sceneManager));
+	newSceneNode->attachObject(createEntity(_name, _mesh, _scale));
 
 	//Set up start pos and orientation
 	newSceneNode->setPosition(_position);
@@ -92,8 +91,7 @@ void SectorObject::destroy()
 {
 	OgreUtils::destroySceneNode(mSceneNode);
 
-	mSceneNode = NULL;
-	mEntity = NULL;
+	mSceneNode = nullptr;
 }
 
 SectorObject::~SectorObject()

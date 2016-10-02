@@ -73,6 +73,17 @@ void ServerGameController::addPlayer(const RakNet::RakNetGUID& _id, PlayerData* 
 {
 	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "addPlayer", "Sending player data for player " + _playerData->mPlayerId + " GUID:" + std::string(_id.ToString()), false);
 
+	//Initialize player ship model
+	_playerData->mPlayerShip.initModel(GameSettings::getInstance().getShip(_playerData->mShipId));
+	
+	//DEBUG
+	_playerData->mPlayerShip.addEngine(*GameSettings::getInstance().getEngine("FirstEngine"));
+	_playerData->mPlayerShip.addDirectional(*GameSettings::getInstance().getDirectional("SecondDirectional"));
+	_playerData->mPlayerShip.addWeapon(*GameSettings::getInstance().getWeapon("Gun1"), 0);
+	_playerData->mPlayerShip.addWeapon(*GameSettings::getInstance().getWeapon("Gun1"), 1);
+	_playerData->mPlayerShip.addWeapon(*GameSettings::getInstance().getWeapon("Gun1"), 2);
+	_playerData->mPlayerShip.addWeapon(*GameSettings::getInstance().getWeapon("Gun1"), 3);
+
 	mConnectedPlayers.insert(std::pair<RakNet::RakNetGUID, PlayerData*>(_id, _playerData));
 }
 
@@ -206,10 +217,7 @@ void ServerGameController::instantiateClientShip(const RakNet::RakNetGUID& _clie
 			_outOrientation = stationSettings->mLaunchPoints[0].mInitialOrientation;
 			_outSector = playerData->mLastSector;
 
-			const std::string& shipId = playerData->mShipId;
-
-			//TODO server specific
-			mSectorController->instantiateClientShip(_clientId, playerData->mPlayerShip, shipId, _outPosition, _outOrientation, _shipUniqueId, _sectorTick);
+			mSectorController->instantiateClientShip(_clientId, playerData->mPlayerShip, _outPosition, _outOrientation, _shipUniqueId, _sectorTick);
 		}
 		else
 		{

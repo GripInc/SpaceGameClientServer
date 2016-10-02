@@ -16,7 +16,7 @@ const float StaticObject::DEFAULT_RESTITUTION_VALUE = 0.8f;
 
 void StaticObject::instantiateObject()
 {
-	SectorObject::instantiateObject();
+	instantiateObjectSceneNode(mObjectSettings->mInitialOrientation, mObjectSettings->mInitialPosition, mObjectSettings->mInitialScale, mObjectSettings->mMesh, mObjectSettings->mName);
 	
 	instantiateObjectParts();
 
@@ -25,11 +25,11 @@ void StaticObject::instantiateObject()
 
 void StaticObject::instantiateCollisionObject()
 {
-	if(mCompoundShape != NULL)
+	if(mCompoundShape != nullptr)
 	{
 		const StaticObjectSettings* staticObjectSettings = static_cast<const StaticObjectSettings*>(mObjectSettings);
 
-		btTransform startTransform = btTransform(convert(staticObjectSettings->mInitialOrientation), convert(staticObjectSettings->mInitialPosition));
+		btTransform startTransform(convert(staticObjectSettings->mInitialOrientation), convert(staticObjectSettings->mInitialPosition));
 		mMyMotionState = new MyMotionState(mSceneNode, startTransform);
 		mRigidBody = createRigidBody(startTransform, mCompoundShape, mMyMotionState, 0.f);
 		mRigidBody->setRestitution(DEFAULT_RESTITUTION_VALUE);
@@ -41,27 +41,30 @@ void StaticObject::instantiateObjectParts()
 {
 	const StaticObjectSettings* staticObjectSettings = static_cast<const StaticObjectSettings*>(mObjectSettings);
 
+	mObjectParts.resize(staticObjectSettings->mObjectParts.size());
 	for(int i = 0; i < staticObjectSettings->mObjectParts.size(); ++i)
 	{
-		mObjectParts.push_back(new ObjectPart());
-		ObjectPartSettings objectPartSettings;
-		objectPartSettings.mName = staticObjectSettings->mObjectParts[i].mName;
-		objectPartSettings.mHitPoints = staticObjectSettings->mObjectParts[i].mHitPoints;
-		mObjectParts[mObjectParts.size() - 1]->init(objectPartSettings);
+		const ObjectPartSettings& newObjectPartSettings = staticObjectSettings->mObjectParts[i];
+
+		ObjectPart& newObjectPart = mObjectParts[i];
+		newObjectPart.init(newObjectPartSettings);
 		
-		const btAlignedObjectArray<CollisionShapeSettings>& collisionShapesSettings = staticObjectSettings->mObjectParts[i].mCollisionShapes;
+		const btAlignedObjectArray<CollisionShapeSettings>& collisionShapesSettings = newObjectPartSettings.mCollisionShapes;
+		mCollisionShapes.resize(collisionShapesSettings.size());
 		for(int j = 0; j < collisionShapesSettings.size(); ++j)
 		{
-			btCollisionShape* collisionShape = mObjectParts[mObjectParts.size() - 1]->createCollisionShape(collisionShapesSettings[j]);
-			mCollisionShapes.push_back(collisionShape);
+			const CollisionShapeSettings& collisionShapeSettings = collisionShapesSettings[j];
 
-			if(mCompoundShape == NULL)
+			btCollisionShape* collisionShape = ObjectPart::createCollisionShape(collisionShapeSettings, &newObjectPart);
+			mCollisionShapes[j] = collisionShape;
+
+			if(mCompoundShape == nullptr)
 			{
 				mCompoundShape = new btCompoundShape();
 				mCompoundShape->setUserPointer(this);
 			}
 
-			mCompoundShape->addChildShape(btTransform(collisionShapesSettings[j].mInitialOrientation, collisionShapesSettings[j].mInitialPosition), collisionShape);
+			mCompoundShape->addChildShape(btTransform(collisionShapeSettings.mInitialOrientation, collisionShapeSettings.mInitialPosition), collisionShape);
 		}
 	}
 }
@@ -84,10 +87,6 @@ void StaticObject::destroy()
 	}
 	mCollisionShapes.clear();
 
-	for(int i = 0; i < mObjectParts.size(); ++i)
-	{
-		delete mObjectParts[i];
-	}
 	mObjectParts.clear();
 
 	delete mCompoundShape;
@@ -100,8 +99,8 @@ void StaticObject::destroy()
 
 btRigidBody* StaticObject::createRigidBody(const btTransform& _startTransform, btCollisionShape* _shape, MyMotionState* _myMotionState, float _mass, const btVector3& _overrideInertia /* = btVector3(0.f, 0.f, 0.f) */)
 {
-	btAssert(!_shape || _shape->getShapeType() != INVALID_SHAPE_PROXYTYPE);
-	btAssert(_myMotionState);
+	//btAssert(!_shape || _shape->getShapeType() != INVALID_SHAPE_PROXYTYPE);
+	//btAssert(_myMotionState);
 
 	btVector3 localInertia = _overrideInertia;
 	if (_mass != 0.f && localInertia.isZero())

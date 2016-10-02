@@ -11,15 +11,11 @@ public:
 	static const std::string PLANET_SPHERE_MANUAL_OBJECT_ID;
 	static bool sManualObjectIsReady;
 
-	PlanetObject(const SectorObjectSettings* _sectorObjectSettings, Ogre::SceneManager* _sceneManager)
-		: SectorObject(_sectorObjectSettings, _sceneManager)
-	{}
-
 protected:
 	bool mManualObjectIsReady = false;
 
 	//Create entity
-	virtual Ogre::Entity* createEntity(const std::string& _name, const std::string& _mesh, const Ogre::Vector3& _scale, Ogre::SceneManager* _sceneManager);
+	virtual Ogre::Entity* createEntity(const std::string& _name, const std::string& _mesh, const Ogre::Vector3& _scale) override;
 };
 
 #endif //_PLANET_OBJECT_H_

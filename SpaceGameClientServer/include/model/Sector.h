@@ -44,16 +44,19 @@ public:
 	void instantiateObjects();
 
 	//Getters
-	std::vector<StaticObject*>& getStaticObjects() { return mStaticObjects;}
-	std::vector<DynamicObject*>& getDynamicObjects() { return mDynamicObjects;}
-	std::vector<Shot*>& getShots() { return mShots;}
-	std::vector<PlanetObject*>& getPlanetObjects() { return mPlanetObjects;}
+	std::vector<StaticObject>& getStaticObjects() { return mStaticObjects;}
+	std::vector<DynamicObject>& getDynamicObjects() { return mDynamicObjects;}
+	std::vector<Shot>& getShots() { return mShots;}
+	std::vector<PlanetObject>& getPlanetObjects() { return mPlanetObjects;}
 	
 	//Add dynamic objects and instantiate them
 	void addShotObject(const ShotSettings& _shotSettings);
 
 	//Set static objects visible
 	void setStaticObjectsVisible(bool _value);
+
+	//Update one ship systems according to an input and a delta time
+	void updateShipSystems(const InputState& _input, Ship* _ship, float _deltaTime);
 
 	//Debug view utils
 	void switchDisplayDebug();
@@ -67,11 +70,11 @@ protected:
 	const SectorSettings* mSectorSettings = nullptr;
 
 	//Sector objects
-	std::vector<StaticObject*> mStaticObjects;
-	std::vector<DynamicObject*> mDynamicObjects;
-	std::vector<Shot*> mShots;
-	std::vector<PlanetObject*> mPlanetObjects;
-	std::vector<SectorObject*> mGateObjects;
+	std::vector<StaticObject> mStaticObjects;
+	std::vector<DynamicObject> mDynamicObjects;
+	std::vector<Shot> mShots;
+	std::vector<PlanetObject> mPlanetObjects;
+	std::vector<SectorObject> mGateObjects;
 	std::map<RakNet::RakNetGUID, Ship*> mShips;
 
 	//The physic world

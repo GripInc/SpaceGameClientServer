@@ -65,24 +65,27 @@ void Sector::instantiateObjects()
 	if(mSectorSettings)
 	{
 		//Static objects
+		mStaticObjects.resize(mSectorSettings->mStaticObjects.size());
 		for(int i = 0; i < mSectorSettings->mStaticObjects.size(); ++i)
 		{
-			mStaticObjects.push_back(new StaticObject(&mSectorSettings->mStaticObjects[i], mSceneManager, mDynamicWorld));
-			mStaticObjects.back()->instantiateObject();
+			mStaticObjects[i].init(&mSectorSettings->mStaticObjects[i], mSceneManager, mDynamicWorld);
+			mStaticObjects[i].instantiateObject();
 		}
 
 		//Planet objects
+		mPlanetObjects.resize(mSectorSettings->mPlanetObjects.size());
 		for(int i = 0; i < mSectorSettings->mPlanetObjects.size(); ++i)
 		{
-			mPlanetObjects.push_back(new PlanetObject(&mSectorSettings->mPlanetObjects[i], mSceneManager));
-			mPlanetObjects.back()->instantiateObject();
+			mPlanetObjects[i].init(&mSectorSettings->mPlanetObjects[i], mSceneManager);
+			mPlanetObjects[i].instantiateObject();
 		}
 
 		//Gate objects
+		mGateObjects.resize(mSectorSettings->mGateObjects.size());
 		for(int i = 0; i < mSectorSettings->mGateObjects.size(); ++i)
 		{
-			mGateObjects.push_back(new SectorObject(&mSectorSettings->mGateObjects[i], mSceneManager));
-			mGateObjects.back()->instantiateObject();
+			mGateObjects[i].init(&mSectorSettings->mGateObjects[i], mSceneManager);
+			mGateObjects[i].instantiateObject();
 		}
 	}
 	else
@@ -94,16 +97,16 @@ void Sector::instantiateObjects()
 
 void Sector::addShotObject(const ShotSettings& _shotSettings)
 {
-	Shot* newShot = new Shot(&_shotSettings, mSceneManager);
-	newShot->instantiateObject();
-	mShots.push_back(newShot);
+	mShots.push_back(Shot());
+	mShots.back().init(&_shotSettings, mSceneManager);
+	mShots.back().instantiateObject();
 }
 
 void Sector::setStaticObjectsVisible(bool _value)
 {
 	for(size_t i = 0; i < mStaticObjects.size(); ++i)
 	{
-		mStaticObjects[i]->setVisible(_value);
+		mStaticObjects[i].setVisible(_value);
 	}
 }
 
@@ -111,22 +114,22 @@ Sector::~Sector()
 {
 	for(size_t i = 0; i < mStaticObjects.size(); ++i)
 	{
-		mStaticObjects[i]->destroy();
+		mStaticObjects[i].destroy();
 	}
 
 	for(size_t i = 0; i < mDynamicObjects.size(); ++i)
 	{
-		mDynamicObjects[i]->destroy();
+		mDynamicObjects[i].destroy();
 	}
 
 	for(size_t i = 0; i < mPlanetObjects.size(); ++i)
 	{
-		mPlanetObjects[i]->destroy();
+		mPlanetObjects[i].destroy();
 	}
 
 	for(size_t i = 0; i < mShots.size(); ++i)
 	{
-		mShots[i]->destroy();
+		mShots[i].destroy();
 	}
 
 	for(std::map<RakNet::RakNetGUID, Ship*>::iterator shipIt = mShips.begin(), shipItEnd = mShips.end(); shipIt != shipItEnd; ++shipIt)
@@ -216,4 +219,123 @@ void Sector::setSectorState(SectorTick _tick)
 	}
 
 	//TODO other kind of entities
+}
+
+void Sector::updateShipSystems(const InputState& _input, Ship* _ship, float _deltaTime)
+{
+	///////////////////
+	//Handling thrust//
+	///////////////////
+	if (_input.mZKeyPressed)
+		_ship->getEngine().mWantedThrust += _ship->getEngine().getThrustSensitivity() * _deltaTime;
+
+	if (_input.mSKeyPressed)
+		_ship->getEngine().mWantedThrust -= _ship->getEngine().getThrustSensitivity() * _deltaTime;
+
+	if (_input.mAKeyPressed)
+		_ship->getEngine().mWantedThrust = _ship->getEngine().getThrustMaxValue();
+
+	if (_input.mQKeyPressed)
+		_ship->getEngine().mWantedThrust = 0;
+
+	//Checking thrust bounds values
+	if (_ship->getEngine().mWantedThrust > _ship->getEngine().getThrustMaxValue())
+		_ship->getEngine().mWantedThrust = _ship->getEngine().getThrustMaxValue();
+	if (_ship->getEngine().mWantedThrust < 0)
+		_ship->getEngine().mWantedThrust = 0;
+
+	//Adding or removing thrust
+	float deltaThrust = _ship->getEngine().mWantedThrust - _ship->getEngine().mRealThrust;
+	float thrustToAdd = 0.f;
+	if (std::fabs(deltaThrust) < _ship->getEngine().getReactivity())
+	{
+		thrustToAdd = (std::fabs(deltaThrust) / 2.f);
+	}
+	else
+	{
+		thrustToAdd = _ship->getEngine().getReactivity();
+	}
+
+	if (deltaThrust > epsilon)
+	{
+		_ship->getEngine().mRealThrust += thrustToAdd * _deltaTime;
+	}
+	else
+	{
+		_ship->getEngine().mRealThrust = _ship->getEngine().mWantedThrust;
+	}
+
+	///////////////////////////////////
+	//Applying mouse movement on ship//
+	///////////////////////////////////
+	//Yaw
+	if (!_input.mWKeyPressed && !_input.mXKeyPressed)
+		_ship->mCurrentYawForce = 0.f;
+	else if (_input.mWKeyPressed)
+		_ship->mCurrentYawForce = -_ship->getMaxYawRate() * _ship->getDirectional().getTurnRateMultiplier();
+	else
+		_ship->mCurrentYawForce = _ship->getMaxYawRate() * _ship->getDirectional().getTurnRateMultiplier();
+
+	//Pitch
+	if (_input.mMouseYAbs != 0.f)
+	{
+		//Mouse control
+		_ship->mCurrentPitchForce = _input.mMouseYAbs * _ship->getMaxPitchRate() * _ship->getDirectional().getTurnRateMultiplier();
+	}
+	else
+	{
+		//Keyboard control
+		if (!_input.mUpKeyPressed && !_input.mDownKeyPressed)
+			_ship->mCurrentPitchForce = 0.f;
+		else if (_input.mUpKeyPressed)
+			_ship->mCurrentPitchForce = -_ship->getMaxPitchRate() * _ship->getDirectional().getTurnRateMultiplier();
+		else
+			_ship->mCurrentPitchForce = _ship->getMaxPitchRate() * _ship->getDirectional().getTurnRateMultiplier();
+	}
+
+	//Roll
+	if (_input.mMouseXAbs != 0.f)
+	{
+		//Mouse control
+		_ship->mCurrentRollForce = _input.mMouseXAbs * _ship->getMaxRollRate() * _ship->getDirectional().getTurnRateMultiplier();
+	}
+	else
+	{
+		//Keyboard control
+		if (!_input.mLeftKeyPressed && !_input.mRightKeyPressed)
+			_ship->mCurrentRollForce = 0.f;
+		else if (_input.mLeftKeyPressed)
+			_ship->mCurrentRollForce = -_ship->getMaxRollRate() * _ship->getDirectional().getTurnRateMultiplier();
+		else
+			_ship->mCurrentRollForce = _ship->getMaxRollRate() * _ship->getDirectional().getTurnRateMultiplier();
+	}
+
+	//Add shot
+	if (_input.mFirePressed)
+	{
+		btAlignedObjectArray<HardPoint>& hardPoints = _ship->getHardPoints();
+		for (int i = 0; i < hardPoints.size(); ++i)
+		{
+			HardPoint& hardPoint = hardPoints[i];
+
+			if (hardPoint.isUsed() && hardPoint.mElapsedTime > hardPoint.getWeaponSettings().mFireRate)
+			{
+				hardPoint.mElapsedTime = 0.f;
+				ShotSettings shotSettings = hardPoint.getShotSettings(); //Create a copy to be able to modify it
+				shotSettings.mInitialOrientation = _ship->getSceneNode()->getOrientation();
+				shotSettings.mInitialPosition = _ship->getRelativePosition(convert(hardPoint.getWeaponSettings().mNoslePosition + hardPoint.getPosition()));
+				addShotObject(shotSettings);
+			}
+		}
+	}
+
+	_ship->updateHardPoints(_deltaTime);
+
+	/////////////////////////////////////////
+	//Applying ship engine power and thrust//
+	/////////////////////////////////////////
+	_ship->mEnginePotentialForce = -_ship->getEngine().mRealThrust;
+	_ship->mEnginePotentialForce *= _ship->getEngine().getPower();
+
+	_ship->updateForces();
 }

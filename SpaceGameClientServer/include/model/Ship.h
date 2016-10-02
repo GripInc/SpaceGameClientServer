@@ -6,20 +6,26 @@
 #include "model/DynamicObject.h"
 #include "model/deserialized/ShipsSettings.h"
 #include "model/InputState.h"
+#include "model/HardPoint.h"
+
 #include "manager/StateManager.h"
 
 class btRigidBody;
 class EngineSettings;
 class DirectionalSettings;
-class HardPoint;
 class WeaponSettings;
 
 class Ship : public DynamicObject
 {
 public:
-	void initShip(const ShipSettings* _shipSettings);
+	//Init model for in station
+	void initModel(const ShipSettings* _shipSettings);
 
-	virtual void instantiateObject(Ogre::SceneManager* _sceneManager, btDiscreteDynamicsWorld* _dynamicWorld, UniqueId _uniqueId);
+	//Init for in space future instanciation
+	void init(Ogre::SceneManager* _sceneManager, btDiscreteDynamicsWorld* _dynamicWorld, UniqueId _uniqueId);
+
+	//Instanciate in world
+	virtual void instantiateObject() override;
 
 	void attachCamera(Ogre::SceneNode* _cameraSceneNode);
 
@@ -38,7 +44,7 @@ public:
 		return shipSettings->mLocalInertia * mDirectional.getInertiaMultiplier();
 	}
 
-	btAlignedObjectArray<HardPoint*>& getHardPoints() { return mHardPoints; }
+	btAlignedObjectArray<HardPoint>& getHardPoints() { return mHardPoints; }
 
 	Engine& getEngine() { return mEngine; }
 	Directional& getDirectional() { return mDirectional; }
@@ -85,7 +91,7 @@ protected:
 
 	virtual void instantiateObjectParts();
 
-	btAlignedObjectArray<HardPoint*> mHardPoints;
+	btAlignedObjectArray<HardPoint> mHardPoints;
 
 	///Engine
 	Engine mEngine;

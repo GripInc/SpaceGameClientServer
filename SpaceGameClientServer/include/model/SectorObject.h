@@ -13,14 +13,14 @@ class SectorObjectSettings;
 class SectorObject
 {
 public:
-	SectorObject() {}
 
-	SectorObject(const SectorObjectSettings* _sectorObjectSettings, Ogre::SceneManager* _sceneManager)
-		: mSceneManager(_sceneManager),
-		mObjectSettings(_sectorObjectSettings)
-	{}
+	void init(const SectorObjectSettings* _sectorObjectSettings, Ogre::SceneManager* _sceneManager)
+	{
+		mSceneManager = _sceneManager;
+		mObjectSettings = _sectorObjectSettings;
+	}
 
-	~SectorObject();
+	virtual ~SectorObject();
 
 	virtual void instantiateObject();
 	
@@ -34,9 +34,7 @@ public:
 
 protected:
 	//Ogre scene relatives objects
-	Ogre::Entity* mEntity = nullptr;
     Ogre::SceneNode* mSceneNode = nullptr;
-	//Used for destruction
 	Ogre::SceneManager* mSceneManager = nullptr;
 	
 	const SectorObjectSettings* mObjectSettings = nullptr;
@@ -46,11 +44,11 @@ protected:
 	bool mIsInstantiated = false;
 
 	//Create entity from either mesh, or cube prefab
-	virtual Ogre::Entity* createEntity(const std::string& _name, const std::string& _mesh, const Ogre::Vector3& _scale, Ogre::SceneManager* _sceneManager);
+	virtual Ogre::Entity* createEntity(const std::string& _name, const std::string& _mesh, const Ogre::Vector3& _scale);
 
-	void addSubSceneNode(const Ogre::Quaternion& _orientation, const Ogre::Vector3& _position, const Ogre::Vector3& _scale, const std::string& _mesh, const std::string& _name, Ogre::SceneManager* _sceneManager);
+	void addSubSceneNode(const Ogre::Quaternion& _orientation, const Ogre::Vector3& _position, const Ogre::Vector3& _scale, const std::string& _mesh, const std::string& _name);
 
-	void instantiateObjectSceneNode(const Ogre::Quaternion& _orientation, const Ogre::Vector3& _position, const Ogre::Vector3& _scale, const std::string& _mesh, const std::string& _name, Ogre::SceneManager* _sceneManager);
+	void instantiateObjectSceneNode(const Ogre::Quaternion& _orientation, const Ogre::Vector3& _position, const Ogre::Vector3& _scale, const std::string& _mesh, const std::string& _name);
 };
 
 #endif //_SECTOR_OBJECT_H_

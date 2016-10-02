@@ -41,9 +41,9 @@ void ClientSectorController::createSector(const std::string& _sectorName, Ogre::
 	mCurrentSector->instantiateObjects();
 }
 
-void ClientSectorController::instantiatePlayerShip(Ship& _playerShip, const std::string& _shipId, const Ogre::Vector3& _position, const Ogre::Quaternion& _orientation, UniqueId _uniqueId, RakNet::RakNetGUID _rakNetGUID, Ogre::SceneNode* _cameraSceneNode)
+void ClientSectorController::instantiatePlayerShip(Ship& _playerShip, const Ogre::Vector3& _position, const Ogre::Quaternion& _orientation, UniqueId _uniqueId, RakNet::RakNetGUID _rakNetGUID, Ogre::SceneNode* _cameraSceneNode)
 {
-	mCurrentSector->instantiatePlayerShip(_playerShip, _shipId, _orientation, _position, _uniqueId, _rakNetGUID, _cameraSceneNode);
+	mCurrentSector->instantiatePlayerShip(_playerShip, _orientation, _position, _uniqueId, _rakNetGUID, _cameraSceneNode);
 }
 
 void ClientSectorController::updateSector(ShipInputHandler& _shipInputHandler)

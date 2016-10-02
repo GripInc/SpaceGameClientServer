@@ -38,16 +38,6 @@ public:
 		result = result && JsonHelpers::readString(_node, "station", mLastStation, "");
 		result = result && JsonHelpers::readString(_node, "sector", mLastSector, "");
 
-		mPlayerShip.initShip(GameSettings::getInstance().getShip(mShipId));
-
-		//DEBUG
-		mPlayerShip.addEngine(*GameSettings::getInstance().getEngine("FirstEngine"));
-		mPlayerShip.addDirectional(*GameSettings::getInstance().getDirectional("SecondDirectional"));
-		mPlayerShip.addWeapon(*GameSettings::getInstance().getWeapon("Gun1"), 0);
-		mPlayerShip.addWeapon(*GameSettings::getInstance().getWeapon("Gun1"), 1);
-		mPlayerShip.addWeapon(*GameSettings::getInstance().getWeapon("Gun1"), 2);
-		mPlayerShip.addWeapon(*GameSettings::getInstance().getWeapon("Gun1"), 3);
-
 		return result;
 	}
 

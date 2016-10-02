@@ -57,6 +57,18 @@ void ClientGameController::startGame(const RakNet::RakString& _playerData)
 		return;
 	}
 
+	//DEBUG
+	//Initialize player ship model
+	mPlayerData.mPlayerShip.initModel(GameSettings::getInstance().getShip(mPlayerData.mShipId));
+
+	//DEBUG
+	mPlayerData.mPlayerShip.addEngine(*GameSettings::getInstance().getEngine("FirstEngine"));
+	mPlayerData.mPlayerShip.addDirectional(*GameSettings::getInstance().getDirectional("SecondDirectional"));
+	mPlayerData.mPlayerShip.addWeapon(*GameSettings::getInstance().getWeapon("Gun1"), 0);
+	mPlayerData.mPlayerShip.addWeapon(*GameSettings::getInstance().getWeapon("Gun1"), 1);
+	mPlayerData.mPlayerShip.addWeapon(*GameSettings::getInstance().getWeapon("Gun1"), 2);
+	mPlayerData.mPlayerShip.addWeapon(*GameSettings::getInstance().getWeapon("Gun1"), 3);
+
 	switchToStationMode(mPlayerData.mLastStation);
 }
 
@@ -124,7 +136,7 @@ void ClientGameController::switchToInSpaceMode(const Ogre::Vector3& _position, c
 	//Create sector
 	mSectorController = new ClientSectorController();
 	mSectorController->createSector(_sectorName, mSceneManager, GAME_UPDATE_RATE, _sectorTick);
-	mSectorController->instantiatePlayerShip(mPlayerData.mPlayerShip, mPlayerData.mShipId, _position, _orientation, _uniqueId, _rakNetGUID, PlayerCamera::getInstance().getCameraNode());
+	mSectorController->instantiatePlayerShip(mPlayerData.mPlayerShip, _position, _orientation, _uniqueId, _rakNetGUID, PlayerCamera::getInstance().getCameraNode());
 }
 
 void ClientGameController::receivedSectorState(RakNet::BitStream& _data) const
@@ -174,13 +186,13 @@ bool ClientGameController::frameRenderingQueued(const Ogre::FrameEvent& evt)
 		if (mUIController->getDebugPanel()->getAllParamNames().size() == 0)
 		{
 			Ogre::StringVector paramNames;
-			paramNames.push_back(mSectorController->getPlayerShip()->getObjectParts()[0]->getName());
-			paramNames.push_back(mSectorController->getPlayerShip()->getObjectParts()[1]->getName());
-			paramNames.push_back(mSectorController->getPlayerShip()->getObjectParts()[2]->getName());
-			paramNames.push_back(mSectorController->getPlayerShip()->getObjectParts()[3]->getName());
-			paramNames.push_back(mSectorController->getPlayerShip()->getObjectParts()[4]->getName());
-			paramNames.push_back(mSectorController->getPlayerShip()->getObjectParts()[5]->getName());
-			paramNames.push_back(mSectorController->getPlayerShip()->getObjectParts()[6]->getName());
+			paramNames.push_back(mSectorController->getPlayerShip()->getObjectParts()[0].getName());
+			paramNames.push_back(mSectorController->getPlayerShip()->getObjectParts()[1].getName());
+			paramNames.push_back(mSectorController->getPlayerShip()->getObjectParts()[2].getName());
+			paramNames.push_back(mSectorController->getPlayerShip()->getObjectParts()[3].getName());
+			paramNames.push_back(mSectorController->getPlayerShip()->getObjectParts()[4].getName());
+			paramNames.push_back(mSectorController->getPlayerShip()->getObjectParts()[5].getName());
+			paramNames.push_back(mSectorController->getPlayerShip()->getObjectParts()[6].getName());
 			paramNames.push_back("LaggyValue");
 			paramNames.push_back("PosX");
 			paramNames.push_back("PosY");
@@ -194,13 +206,13 @@ bool ClientGameController::frameRenderingQueued(const Ogre::FrameEvent& evt)
 		mDebugPanelLastRefresh += evt.timeSinceLastFrame;
 		if (mDebugPanelLastRefresh > sDebugPanelRefreshRate)
 		{
-			mUIController->getDebugPanel()->setParamValue(0, StringUtils::toStr(mSectorController->getPlayerShip()->getObjectParts()[0]->mHitPoints));
-			mUIController->getDebugPanel()->setParamValue(1, StringUtils::toStr(mSectorController->getPlayerShip()->getObjectParts()[1]->mHitPoints));
-			mUIController->getDebugPanel()->setParamValue(2, StringUtils::toStr(mSectorController->getPlayerShip()->getObjectParts()[2]->mHitPoints));
-			mUIController->getDebugPanel()->setParamValue(3, StringUtils::toStr(mSectorController->getPlayerShip()->getObjectParts()[3]->mHitPoints));
-			mUIController->getDebugPanel()->setParamValue(4, StringUtils::toStr(mSectorController->getPlayerShip()->getObjectParts()[4]->mHitPoints));
-			mUIController->getDebugPanel()->setParamValue(5, StringUtils::toStr(mSectorController->getPlayerShip()->getObjectParts()[5]->mHitPoints));
-			mUIController->getDebugPanel()->setParamValue(6, StringUtils::toStr(mSectorController->getPlayerShip()->getObjectParts()[6]->mHitPoints));
+			mUIController->getDebugPanel()->setParamValue(0, StringUtils::toStr(mSectorController->getPlayerShip()->getObjectParts()[0].mHitPoints));
+			mUIController->getDebugPanel()->setParamValue(1, StringUtils::toStr(mSectorController->getPlayerShip()->getObjectParts()[1].mHitPoints));
+			mUIController->getDebugPanel()->setParamValue(2, StringUtils::toStr(mSectorController->getPlayerShip()->getObjectParts()[2].mHitPoints));
+			mUIController->getDebugPanel()->setParamValue(3, StringUtils::toStr(mSectorController->getPlayerShip()->getObjectParts()[3].mHitPoints));
+			mUIController->getDebugPanel()->setParamValue(4, StringUtils::toStr(mSectorController->getPlayerShip()->getObjectParts()[4].mHitPoints));
+			mUIController->getDebugPanel()->setParamValue(5, StringUtils::toStr(mSectorController->getPlayerShip()->getObjectParts()[5].mHitPoints));
+			mUIController->getDebugPanel()->setParamValue(6, StringUtils::toStr(mSectorController->getPlayerShip()->getObjectParts()[6].mHitPoints));
 			mUIController->getDebugPanel()->setParamValue(7, StringUtils::toStr(mLaggyValue));
 			mUIController->getDebugPanel()->setParamValue(8, StringUtils::toStr(mSectorController->getPlayerShip()->getSceneNode()->getPosition().x));
 			mUIController->getDebugPanel()->setParamValue(9, StringUtils::toStr(mSectorController->getPlayerShip()->getSceneNode()->getPosition().y));

@@ -10,19 +10,20 @@
 class HardPoint
 {
 public:
-	HardPoint(int _index, const btVector3& _position, float _roll)
-		: mIndex(_index),
-		mPosition(_position),
-		mRoll(_roll)
-	{}
+	void init(int _index, const btVector3& _position, float _roll)
+	{
+		mIndex = _index;
+		mPosition = _position;
+		mRoll = _roll;
+	}
 
 	int getIndex() const { return mIndex; }
 	const btVector3& getPosition() const { return mPosition; }
 	float getRoll() const { return mRoll; }
 
 	void attachWeapon(const WeaponSettings& _weaponSettings);
-	void detachWeapon() { mWeaponSettings.mName = ""; }
-	bool isUsed() { return mWeaponSettings.mName != ""; }
+	void detachWeapon() { mWeaponSettings.mName.clear(); }
+	bool isUsed() const { return !mWeaponSettings.mName.empty(); }
 
 	const WeaponSettings& getWeaponSettings() const { return mWeaponSettings; }
 	const ShotSettings& getShotSettings() const { return mShotSettings; }

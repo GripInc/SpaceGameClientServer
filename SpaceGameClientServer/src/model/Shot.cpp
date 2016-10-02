@@ -3,7 +3,7 @@
 
 void Shot::instantiateObject()
 {
-	SectorObject::instantiateObject();
+	instantiateObjectSceneNode(mObjectSettings->mInitialOrientation, mObjectSettings->mInitialPosition, mObjectSettings->mInitialScale, mObjectSettings->mMesh, mObjectSettings->mName);
 
 	const ShotSettings* shotSettings =  static_cast<const ShotSettings*>(mObjectSettings);
 

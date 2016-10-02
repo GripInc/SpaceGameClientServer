@@ -16,7 +16,7 @@
 
 #include "manager/LoggerManager.h"
 
-void Ship::initShip(const ShipSettings* _shipSettings)
+void Ship::initModel(const ShipSettings* _shipSettings)
 {
 	mObjectSettings = _shipSettings;
 
@@ -25,36 +25,42 @@ void Ship::initShip(const ShipSettings* _shipSettings)
 	mMaxRollRate = _shipSettings->mMaxRollRate;
 	mCargoSpace = _shipSettings->mCargoSpace;
 
-	mHardPoints.resize(_shipSettings->mHardPoints.size());
-	for(int i = 0; i < _shipSettings->mHardPoints.size(); ++i)
+	const btAlignedObjectArray<HardPointSettings>& hardPointSettingsList = _shipSettings->mHardPoints;
+	mHardPoints.resize(hardPointSettingsList.size());
+	for (int i = 0; i < hardPointSettingsList.size(); ++i)
 	{
-		mHardPoints[_shipSettings->mHardPoints[i].mIndex] = new HardPoint(_shipSettings->mHardPoints[i].mIndex, _shipSettings->mHardPoints[i].mPosition, _shipSettings->mHardPoints[i].mRoll);
+		const HardPointSettings& hardPointSetting = hardPointSettingsList[i];
+		mHardPoints[hardPointSetting.mIndex].init(hardPointSetting.mIndex, hardPointSetting.mPosition, hardPointSetting.mRoll);
 	}
 }
 
-void Ship::instantiateObject(Ogre::SceneManager* _sceneManager, btDiscreteDynamicsWorld* _dynamicWorld, UniqueId _uniqueId)
+void Ship::init(Ogre::SceneManager* _sceneManager, btDiscreteDynamicsWorld* _dynamicWorld, UniqueId _uniqueId)
 {
-	mSceneManager = _sceneManager;
-	mDynamicWorld = _dynamicWorld;
+	const ShipSettings* shipSettings = static_cast<const ShipSettings*>(mObjectSettings);
 
-	DynamicObject(static_cast<const DynamicObjectSettings*>(mObjectSettings), mSceneManager, mDynamicWorld, _uniqueId);
+	DynamicObject::init(shipSettings, _sceneManager, _dynamicWorld, _uniqueId);
+}
 
-	//We explicitely want the graphics only
-	SectorObject::instantiateObject();
-
-	for(int i = 0; i < mHardPoints.size(); ++i)
+void Ship::instantiateObject()
+{
+	//Code from static object::instantiateObject
+	instantiateObjectSceneNode(mObjectSettings->mInitialOrientation, mObjectSettings->mInitialPosition, mObjectSettings->mInitialScale, mObjectSettings->mMesh, mObjectSettings->mName);
+	
+	for (int i = 0; i < mHardPoints.size(); ++i)
 	{
-		if(mHardPoints[i]->isUsed())
+		HardPoint& hardPoint = mHardPoints[i];
+
+		if (hardPoint.isUsed())
 		{
 			//Find the weapon attached to hardpoint
-			const WeaponSettings& weaponSettings = mHardPoints[i]->getWeaponSettings();
+			const WeaponSettings& weaponSettings = hardPoint.getWeaponSettings();
 
-			addSubSceneNode(convert(btQuaternion(btVector3(0.f, 0.f, 1.f), mHardPoints[i]->getRoll())), convert(weaponSettings.mHardPoint.mPosition + mHardPoints[i]->getPosition()), Ogre::Vector3(1.f ,1.f ,1.f), weaponSettings.mMesh, "hardpoint_" + StringUtils::toStr(i) + weaponSettings.mName, mSceneManager);
+			addSubSceneNode(convert(btQuaternion(btVector3(0.f, 0.f, 1.f), hardPoint.getRoll())), convert(weaponSettings.mHardPoint.mPosition + hardPoint.getPosition()), Ogre::Vector3(1.f, 1.f, 1.f), weaponSettings.mMesh, "hardpoint_" + StringUtils::toStr(i) + weaponSettings.mName);
 		}
 	}
 
 	instantiateObjectParts();
-
+	
 	instantiateCollisionObject();
 }
 
@@ -75,24 +81,30 @@ void Ship::instantiateObjectParts()
 	//Loop on used hardpoints
 	for(int i = 0; i < mHardPoints.size(); ++i)
 	{
-		if(mHardPoints[i]->isUsed())
+		HardPoint hardPoint = mHardPoints[i];
+
+		if(hardPoint.isUsed())
 		{
-			mObjectParts.push_back(new ObjectPart());
-			ObjectPartSettings objectPartSettings;
-			objectPartSettings.mName = "hardPoint_" + StringUtils::toStr(mHardPoints[i]->getIndex());
-			objectPartSettings.mHitPoints = mHardPoints[i]->getWeaponSettings().mHitPoints;
-			mObjectParts[mObjectParts.size() - 1]->init(objectPartSettings);
+			mObjectParts.push_back(ObjectPart());
+			ObjectPart& objectPart = mObjectParts[mObjectParts.size() - 1];
 
 			//Get the weapon attached to hardpoint
-			const WeaponSettings& weaponSettings = mHardPoints[i]->getWeaponSettings();
+			const WeaponSettings& weaponSettings = hardPoint.getWeaponSettings();
+
+			//Init object part
+			ObjectPartSettings objectPartSettings;
+			objectPartSettings.mName = "hardPoint_" + StringUtils::toStr(hardPoint.getIndex());
+			objectPartSettings.mHitPoints = weaponSettings.mHitPoints;
+			
+			objectPart.init(objectPartSettings);
 
 			//Add shapes
 			const btAlignedObjectArray<CollisionShapeSettings>& collisionShapesSettings = weaponSettings.mCollisionShapes;
 			for(int j = 0; j < collisionShapesSettings.size(); ++j)
 			{
-				btCollisionShape* collisionShape = mObjectParts[mObjectParts.size() - 1]->createCollisionShape(collisionShapesSettings[j]);
+				btCollisionShape* collisionShape = ObjectPart::createCollisionShape(collisionShapesSettings[j], &objectPart);
 				mCollisionShapes.push_back(collisionShape);
-				mCompoundShape->addChildShape(btTransform(collisionShapesSettings[j].mInitialOrientation * btQuaternion(btVector3(0.f, 0.f, 1.f), mHardPoints[i]->getRoll()), collisionShapesSettings[j].mInitialPosition + weaponSettings.mHardPoint.mPosition + mHardPoints[i]->getPosition()), collisionShape);
+				mCompoundShape->addChildShape(btTransform(collisionShapesSettings[j].mInitialOrientation * btQuaternion(btVector3(0.f, 0.f, 1.f), hardPoint.getRoll()), collisionShapesSettings[j].mInitialPosition + weaponSettings.mHardPoint.mPosition + hardPoint.getPosition()), collisionShape);
 			}
 		}
 	}
@@ -110,13 +122,13 @@ void Ship::addDirectional(const DirectionalSettings& _directional)
 
 void Ship::addWeapon(const WeaponSettings& _weapon, int _index)
 {
-	mHardPoints[_index]->attachWeapon(_weapon);
+	mHardPoints[_index].attachWeapon(_weapon);
 }
 
 const WeaponSettings& Ship::removeWeapon(int _index)
 {
-	const WeaponSettings& result = mHardPoints[_index]->getWeaponSettings();
-	mHardPoints[_index]->detachWeapon();
+	const WeaponSettings& result = mHardPoints[_index].getWeaponSettings();
+	mHardPoints[_index].detachWeapon();
 
 	return result;
 }
@@ -170,8 +182,8 @@ void Ship::updateHardPoints(float _deltaTime)
 {
 	for(int i = 0; i < mHardPoints.size(); ++i)
 	{
-		if(mHardPoints[i]->isUsed())
-			mHardPoints[i]->mElapsedTime += _deltaTime;
+		if(mHardPoints[i].isUsed())
+			mHardPoints[i].mElapsedTime += _deltaTime;
 	}
 }
 
@@ -181,9 +193,9 @@ void Ship::saveState(SectorTick _tick)
 	int hardpointsSize = mHardPoints.size();
 	for(int i = 0; i < hardpointsSize; ++i)
 	{
-		if(mHardPoints[i]->isUsed())
+		if(mHardPoints[i].isUsed())
 		{
-			hardpointsState.push_back(std::make_pair(mHardPoints[i]->getIndex(), mHardPoints[i]->mElapsedTime));
+			hardpointsState.push_back(std::make_pair(mHardPoints[i].getIndex(), mHardPoints[i].mElapsedTime));
 		}
 	}
 
@@ -222,9 +234,9 @@ void Ship::setState(SectorTick _tick)
 	for (size_t i = 0; i < hardpointsSize; ++i)
 	{
 		int index = harpointsState[i].first;
-		if(mHardPoints[index]->isUsed())
+		if(mHardPoints[index].isUsed())
 		{
-			mHardPoints[index]->mElapsedTime = harpointsState[i].second;
+			mHardPoints[index].mElapsedTime = harpointsState[i].second;
 		}
 	}
 }
@@ -260,9 +272,9 @@ void Ship::serialize(RakNet::BitStream& _bitStream) const
 	int hardpointsSize = mHardPoints.size();
 	for (int i = 0; i < hardpointsSize; ++i)
 	{
-		if (mHardPoints[i]->isUsed())
+		if (mHardPoints[i].isUsed())
 		{
-			hardpointsState.push_back(std::make_pair(mHardPoints[i]->getIndex(), mHardPoints[i]->mElapsedTime));
+			hardpointsState.push_back(std::make_pair(mHardPoints[i].getIndex(), mHardPoints[i].mElapsedTime));
 		}
 	}
 
