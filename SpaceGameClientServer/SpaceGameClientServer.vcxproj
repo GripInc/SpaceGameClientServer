@@ -412,6 +412,7 @@
     <ClInclude Include="include\model\Shot.h" />
     <ClInclude Include="include\model\StaticObject.h" />
     <ClInclude Include="include\model\StationScreen.h" />
+    <ClInclude Include="include\model\Weapon.h" />
     <ClInclude Include="include\network\ClientNetworkService.h" />
     <ClInclude Include="include\network\IConnectionReadyListener.h" />
     <ClInclude Include="include\network\INetworkService.h" />
@@ -420,7 +421,7 @@
     <ClInclude Include="include\network\ServerNetworkService.h" />
     <ClInclude Include="include\SpaceGameTypes.h" />
     <ClInclude Include="include\utils\BulletDebugDraw.h" />
-    <ClInclude Include="include\utils\BulletCallBacks.h" />
+    <ClInclude Include="include\utils\BulletUtils.h" />
     <ClInclude Include="include\utils\json\IJsonSerializable.h" />
     <ClInclude Include="include\utils\json\json-forwards.h" />
     <ClInclude Include="include\utils\json\json.h" />
@@ -585,7 +586,7 @@
     <ClCompile Include="src\network\NetworkService.cpp" />
     <ClCompile Include="src\network\ServerNetworkService.cpp" />
     <ClCompile Include="src\utils\BulletDebugDraw.cpp" />
-    <ClCompile Include="src\utils\BulletCallBacks.cpp" />
+    <ClCompile Include="src\utils\BulletUtils.cpp" />
     <ClCompile Include="src\utils\json\jsoncpp.cpp" />
     <ClCompile Include="src\utils\OgreUtils.cpp" />
     <ClCompile Include="src\utils\StringUtils.cpp" />

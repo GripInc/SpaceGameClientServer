@@ -23,6 +23,11 @@ public:
 		return success;
 	}
 
+	int getIndex() const { return mIndex; }
+	const btVector3& getPosition() const { return mPosition; }
+	float getRoll() const { return mRoll; }
+
+protected:
 	int mIndex = 0;
 	btVector3 mPosition;
 	float mRoll = 0.f; //roll value of the weapon attached around the z axis

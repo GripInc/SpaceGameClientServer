@@ -17,6 +17,9 @@ public:
 		return success;
 	}
 
+	float getCapacity() const { return mCapacity; }
+
+protected:
 	float mCapacity;
 };
 
@@ -41,7 +44,7 @@ public:
 	const AccumulatorSettings* getAccumulatorSettings(const std::string& _accumulator) const
 	{
 		for(int i = 0; i < mAccumulators.size(); ++i)
-			if(mAccumulators[i].mName.compare(_accumulator) == 0)
+			if(mAccumulators[i].getName().compare(_accumulator) == 0)
 				return &mAccumulators[i];
 
 		return NULL;

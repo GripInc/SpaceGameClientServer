@@ -86,7 +86,7 @@ public:
 	const ScreenSettings* getScreen(const std::string& _screen) const
 	{
 		for(int i = 0; i < mScreens.size(); ++i)
-			if(mScreens[i].mName.compare(_screen) == 0)
+			if(mScreens[i].getName().compare(_screen) == 0)
 				return &mScreens[i];
 
 		return NULL;

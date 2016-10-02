@@ -4,11 +4,13 @@
 
 #include "utils/OgreBulletConvert.h"
 
-void HardPoint::attachWeapon(const WeaponSettings& _weaponSettings)
+void HardPoint::attachWeapon(const WeaponSettings* _weaponSettings)
 {
-	mWeaponSettings = _weaponSettings;
+	mWeapon.init(_weaponSettings);
+	mEmpty = false;
+}
 
-	mShotSettings = *GameSettings::getInstance().getShot(_weaponSettings.mShotType);
-
-	mWeaponSettings.mNoslePosition += mWeaponSettings.mHardPoint.mPosition;
+void HardPoint::update(float _deltaTime)
+{
+	mWeapon.mElapsedTime += _deltaTime;
 }

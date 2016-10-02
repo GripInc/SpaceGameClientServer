@@ -21,6 +21,10 @@ public:
 		return success;
 	}
 
+	float getGeneration() const { return mGeneration; }
+	Types::ReactorType getType() const { return mType; }
+
+protected:
 	float mGeneration = 0.f;
 	Types::ReactorType mType = Types::RT_CHIMICAL;
 };
@@ -46,7 +50,7 @@ public:
 	const ReactorSettings* getReactorSettings(const std::string& _reactor) const
 	{
 		for(int i = 0; i < mReactors.size(); ++i)
-			if(mReactors[i].mName.compare(_reactor) == 0)
+			if(mReactors[i].getName().compare(_reactor) == 0)
 				return &mReactors[i];
 
 		return NULL;

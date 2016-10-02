@@ -8,6 +8,7 @@
 #include "utils/OgreBulletConvert.h"
 #include "utils/OgreUtils.h"
 #include "utils/StringUtils.h"
+#include "utils/BulletUtils.h"
 
 #include "btBulletCollisionCommon.h"
 #include "btBulletDynamicsCommon.h"
@@ -16,7 +17,7 @@ const float StaticObject::DEFAULT_RESTITUTION_VALUE = 0.8f;
 
 void StaticObject::instantiateObject()
 {
-	instantiateObjectSceneNode(mObjectSettings->mInitialOrientation, mObjectSettings->mInitialPosition, mObjectSettings->mInitialScale, mObjectSettings->mMesh, mObjectSettings->mName);
+	instantiateObjectSceneNode(mObjectSettings->mInitialOrientation, mObjectSettings->mInitialPosition, mObjectSettings->mInitialScale, mObjectSettings->mMesh, mObjectSettings->getName());
 	
 	instantiateObjectParts();
 
@@ -49,13 +50,13 @@ void StaticObject::instantiateObjectParts()
 		ObjectPart& newObjectPart = mObjectParts[i];
 		newObjectPart.init(newObjectPartSettings);
 		
-		const btAlignedObjectArray<CollisionShapeSettings>& collisionShapesSettings = newObjectPartSettings.mCollisionShapes;
+		const btAlignedObjectArray<CollisionShapeSettings>& collisionShapesSettings = newObjectPartSettings.getCollisionShapes();
 		mCollisionShapes.resize(collisionShapesSettings.size());
 		for(int j = 0; j < collisionShapesSettings.size(); ++j)
 		{
 			const CollisionShapeSettings& collisionShapeSettings = collisionShapesSettings[j];
 
-			btCollisionShape* collisionShape = ObjectPart::createCollisionShape(collisionShapeSettings, &newObjectPart);
+			btCollisionShape* collisionShape = createCollisionShape(collisionShapeSettings, &newObjectPart);
 			mCollisionShapes[j] = collisionShape;
 
 			if(mCompoundShape == nullptr)

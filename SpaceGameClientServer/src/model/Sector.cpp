@@ -15,7 +15,7 @@
 #include "utils/OgreUtils.h"
 #include "utils/OgreBulletConvert.h"
 #include "utils/BulletDebugDraw.h"
-#include "utils/BulletCallBacks.h"
+#include "utils/BulletUtils.h"
 
 #include "manager/LoggerManager.h"
 
@@ -90,7 +90,7 @@ void Sector::instantiateObjects()
 	}
 	else
 	{
-		LoggerManager::getInstance().logE(LOG_CLASS_TAG, "instantiateObjects", "Sector settings not found for sector : " + mSectorSettings->mName);
+		LoggerManager::getInstance().logE(LOG_CLASS_TAG, "instantiateObjects", "Sector settings not found for sector : " + mSectorSettings->getName());
 		assert(false);
 	}
 }
@@ -332,12 +332,12 @@ void Sector::updateShipSystems(const InputState& _input, Ship* _ship, float _del
 		{
 			HardPoint& hardPoint = hardPoints[i];
 
-			if (hardPoint.isUsed() && hardPoint.mElapsedTime > hardPoint.getWeaponSettings().mFireRate)
+			if (hardPoint.isUsed() && hardPoint.getWeapon().mElapsedTime > hardPoint.getWeapon().getFireRate())
 			{
-				hardPoint.mElapsedTime = 0.f;
-				ShotSettings shotSettings = hardPoint.getShotSettings(); //Create a copy to be able to modify it
+				hardPoint.getWeapon().mElapsedTime = 0.f;
+				ShotSettings shotSettings = *hardPoint.getWeapon().getShotSettings(); //Create a copy to be able to modify it
 				shotSettings.mInitialOrientation = _ship->getSceneNode()->getOrientation();
-				shotSettings.mInitialPosition = _ship->getRelativePosition(convert(hardPoint.getWeaponSettings().mNoslePosition + hardPoint.getPosition()));
+				shotSettings.mInitialPosition = _ship->getRelativePosition(convert(hardPoint.getWeapon().getNoslePosition() + hardPoint.getPosition()));
 				addShotObject(shotSettings);
 			}
 		}

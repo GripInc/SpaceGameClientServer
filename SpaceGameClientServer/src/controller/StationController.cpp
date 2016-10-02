@@ -98,7 +98,7 @@ bool StationController::mouseReleased( const OIS::MouseEvent &arg, OIS::MouseBut
 	{
 		if(mouseX > mCurrentScreen->mClickZones[i].mX && mouseX < mCurrentScreen->mClickZones[i].mX + mCurrentScreen->mClickZones[i].mWidth &&
 			mouseY > mCurrentScreen->mClickZones[i].mY && mouseY < mCurrentScreen->mClickZones[i].mY + mCurrentScreen->mClickZones[i].mHeight &&
-			isScreenAvailable(mCurrentScreen->mClickZones[i].mName))
+			isScreenAvailable(mCurrentScreen->mClickZones[i].getName()))
 		{
 			nextScreen = mCurrentScreen->mClickZones[i].mTarget;
 			break;

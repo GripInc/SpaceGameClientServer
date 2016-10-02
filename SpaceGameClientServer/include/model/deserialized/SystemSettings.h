@@ -20,6 +20,11 @@ public:
 		return success;
 	}
 
+	unsigned int getSpace() const { return mSpace; }
+	unsigned int getHitPoints() const { return mHitPoints; }
+	unsigned int getMass() const { return mMass; }
+
+protected:
 	unsigned int mSpace = 0U;
 	unsigned int mHitPoints = 0U;
 	unsigned int mMass = 0U;

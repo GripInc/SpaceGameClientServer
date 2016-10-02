@@ -12,7 +12,7 @@ class ObjectPart
 {
 public:
 	void init(const ObjectPartSettings& _objectPartSettings);
-	static btCollisionShape* createCollisionShape(const CollisionShapeSettings& _collisionShapeSettings, void* _userPointer);
+	void init(const std::string& _name, int _hitPoints);
 
 	const std::string& getName() const { return mName; }
 

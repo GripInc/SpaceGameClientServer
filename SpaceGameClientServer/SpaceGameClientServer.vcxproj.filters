@@ -771,11 +771,14 @@
     <ClInclude Include="include\model\ServerSector.h">
       <Filter>Header Files\model</Filter>
     </ClInclude>
-    <ClInclude Include="include\utils\BulletCallBacks.h">
-      <Filter>Header Files\utils</Filter>
-    </ClInclude>
     <ClInclude Include="include\manager\InputHistoryManager.h">
       <Filter>Header Files\manager</Filter>
+    </ClInclude>
+    <ClInclude Include="include\model\Weapon.h">
+      <Filter>Header Files\model</Filter>
+    </ClInclude>
+    <ClInclude Include="include\utils\BulletUtils.h">
+      <Filter>Header Files\utils</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -1250,11 +1253,11 @@
     <ClCompile Include="src\model\ServerSector.cpp">
       <Filter>Source Files\model</Filter>
     </ClCompile>
-    <ClCompile Include="src\utils\BulletCallBacks.cpp">
-      <Filter>Source Files\utils</Filter>
-    </ClCompile>
     <ClCompile Include="src\manager\InputHistoryManager.cpp">
       <Filter>Source Files\manager</Filter>
+    </ClCompile>
+    <ClCompile Include="src\utils\BulletUtils.cpp">
+      <Filter>Source Files\utils</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

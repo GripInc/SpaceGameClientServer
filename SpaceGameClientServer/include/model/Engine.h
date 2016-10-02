@@ -8,7 +8,7 @@ class EngineSettings;
 class Engine
 {
 public:
-	void init(const EngineSettings& _engineSettings);
+	void init(const EngineSettings* _engineSettings);
 
 	///Getters
 	const std::string& getName() const { return mName; }

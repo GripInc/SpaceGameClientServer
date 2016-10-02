@@ -77,12 +77,12 @@ void ServerGameController::addPlayer(const RakNet::RakNetGUID& _id, PlayerData* 
 	_playerData->mPlayerShip.initModel(GameSettings::getInstance().getShip(_playerData->mShipId));
 	
 	//DEBUG
-	_playerData->mPlayerShip.addEngine(*GameSettings::getInstance().getEngine("FirstEngine"));
-	_playerData->mPlayerShip.addDirectional(*GameSettings::getInstance().getDirectional("SecondDirectional"));
-	_playerData->mPlayerShip.addWeapon(*GameSettings::getInstance().getWeapon("Gun1"), 0);
-	_playerData->mPlayerShip.addWeapon(*GameSettings::getInstance().getWeapon("Gun1"), 1);
-	_playerData->mPlayerShip.addWeapon(*GameSettings::getInstance().getWeapon("Gun1"), 2);
-	_playerData->mPlayerShip.addWeapon(*GameSettings::getInstance().getWeapon("Gun1"), 3);
+	_playerData->mPlayerShip.addEngine(GameSettings::getInstance().getEngine("FirstEngine"));
+	_playerData->mPlayerShip.addDirectional(GameSettings::getInstance().getDirectional("SecondDirectional"));
+	_playerData->mPlayerShip.addWeapon(GameSettings::getInstance().getWeapon("Gun1"), 0);
+	_playerData->mPlayerShip.addWeapon(GameSettings::getInstance().getWeapon("Gun1"), 1);
+	_playerData->mPlayerShip.addWeapon(GameSettings::getInstance().getWeapon("Gun1"), 2);
+	_playerData->mPlayerShip.addWeapon(GameSettings::getInstance().getWeapon("Gun1"), 3);
 
 	mConnectedPlayers.insert(std::pair<RakNet::RakNetGUID, PlayerData*>(_id, _playerData));
 }

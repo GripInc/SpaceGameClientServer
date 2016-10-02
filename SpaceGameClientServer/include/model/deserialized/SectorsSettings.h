@@ -105,7 +105,7 @@ public:
 	const SectorSettings* getSectorSettings(const std::string& _sectorName) const
 	{
 		for(int i = 0; i < mSectors.size(); ++i)
-			if(mSectors[i].mName.compare(_sectorName) == 0)
+			if(mSectors[i].getName().compare(_sectorName) == 0)
 				return &mSectors[i];
 
 		return NULL;

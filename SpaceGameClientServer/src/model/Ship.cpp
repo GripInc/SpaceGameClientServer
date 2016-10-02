@@ -7,6 +7,7 @@
 #include "OgreSceneNode.h"
 
 #include "utils/OgreBulletConvert.h"
+#include "utils/BulletUtils.h"
 #include "utils/StringUtils.h"
 
 #include "btBulletCollisionCommon.h"
@@ -30,7 +31,7 @@ void Ship::initModel(const ShipSettings* _shipSettings)
 	for (int i = 0; i < hardPointSettingsList.size(); ++i)
 	{
 		const HardPointSettings& hardPointSetting = hardPointSettingsList[i];
-		mHardPoints[hardPointSetting.mIndex].init(hardPointSetting.mIndex, hardPointSetting.mPosition, hardPointSetting.mRoll);
+		mHardPoints[hardPointSetting.getIndex()].init(hardPointSetting.getIndex(), hardPointSetting.getPosition(), hardPointSetting.getRoll());
 	}
 }
 
@@ -44,7 +45,7 @@ void Ship::init(Ogre::SceneManager* _sceneManager, btDiscreteDynamicsWorld* _dyn
 void Ship::instantiateObject()
 {
 	//Code from static object::instantiateObject
-	instantiateObjectSceneNode(mObjectSettings->mInitialOrientation, mObjectSettings->mInitialPosition, mObjectSettings->mInitialScale, mObjectSettings->mMesh, mObjectSettings->mName);
+	instantiateObjectSceneNode(mObjectSettings->mInitialOrientation, mObjectSettings->mInitialPosition, mObjectSettings->mInitialScale, mObjectSettings->mMesh, mObjectSettings->getName());
 	
 	for (int i = 0; i < mHardPoints.size(); ++i)
 	{
@@ -53,9 +54,9 @@ void Ship::instantiateObject()
 		if (hardPoint.isUsed())
 		{
 			//Find the weapon attached to hardpoint
-			const WeaponSettings& weaponSettings = hardPoint.getWeaponSettings();
+			const Weapon& weapon = hardPoint.getWeapon();
 
-			addSubSceneNode(convert(btQuaternion(btVector3(0.f, 0.f, 1.f), hardPoint.getRoll())), convert(weaponSettings.mHardPoint.mPosition + hardPoint.getPosition()), Ogre::Vector3(1.f, 1.f, 1.f), weaponSettings.mMesh, "hardpoint_" + StringUtils::toStr(i) + weaponSettings.mName);
+			addSubSceneNode(convert(btQuaternion(btVector3(0.f, 0.f, 1.f), hardPoint.getRoll())), convert(weapon.getHardPointPosition() + hardPoint.getPosition()), Ogre::Vector3(1.f, 1.f, 1.f), weapon.getMesh(), "hardpoint_" + StringUtils::toStr(i));
 		}
 	}
 
@@ -89,48 +90,41 @@ void Ship::instantiateObjectParts()
 			ObjectPart& objectPart = mObjectParts[mObjectParts.size() - 1];
 
 			//Get the weapon attached to hardpoint
-			const WeaponSettings& weaponSettings = hardPoint.getWeaponSettings();
+			const Weapon& weapon = hardPoint.getWeapon();
 
 			//Init object part
-			ObjectPartSettings objectPartSettings;
-			objectPartSettings.mName = "hardPoint_" + StringUtils::toStr(hardPoint.getIndex());
-			objectPartSettings.mHitPoints = weaponSettings.mHitPoints;
-			
-			objectPart.init(objectPartSettings);
+			objectPart.init("hardPoint_" + StringUtils::toStr(hardPoint.getIndex()), weapon.getBaseHitPoints());
 
 			//Add shapes
-			const btAlignedObjectArray<CollisionShapeSettings>& collisionShapesSettings = weaponSettings.mCollisionShapes;
+			const btAlignedObjectArray<CollisionShapeSettings>& collisionShapesSettings = weapon.getCollisionShapes();
 			for(int j = 0; j < collisionShapesSettings.size(); ++j)
 			{
-				btCollisionShape* collisionShape = ObjectPart::createCollisionShape(collisionShapesSettings[j], &objectPart);
+				btCollisionShape* collisionShape = createCollisionShape(collisionShapesSettings[j], &objectPart);
 				mCollisionShapes.push_back(collisionShape);
-				mCompoundShape->addChildShape(btTransform(collisionShapesSettings[j].mInitialOrientation * btQuaternion(btVector3(0.f, 0.f, 1.f), hardPoint.getRoll()), collisionShapesSettings[j].mInitialPosition + weaponSettings.mHardPoint.mPosition + hardPoint.getPosition()), collisionShape);
+				mCompoundShape->addChildShape(btTransform(collisionShapesSettings[j].mInitialOrientation * btQuaternion(btVector3(0.f, 0.f, 1.f), hardPoint.getRoll()), collisionShapesSettings[j].mInitialPosition + weapon.getHardPointPosition() + hardPoint.getPosition()), collisionShape);
 			}
 		}
 	}
 }
 
-void Ship::addEngine(const EngineSettings& _engine)
+void Ship::addEngine(const EngineSettings* _engine)
 {
 	mEngine.init(_engine);
 }
 
-void Ship::addDirectional(const DirectionalSettings& _directional)
+void Ship::addDirectional(const DirectionalSettings* _directional)
 {
 	mDirectional.init(_directional);
 }
 
-void Ship::addWeapon(const WeaponSettings& _weapon, int _index)
+void Ship::addWeapon(const WeaponSettings* _weapon, int _index)
 {
 	mHardPoints[_index].attachWeapon(_weapon);
 }
 
-const WeaponSettings& Ship::removeWeapon(int _index)
+void Ship::removeWeapon(int _index)
 {
-	const WeaponSettings& result = mHardPoints[_index].getWeaponSettings();
 	mHardPoints[_index].detachWeapon();
-
-	return result;
 }
 
 void Ship::updateForces()
@@ -183,7 +177,7 @@ void Ship::updateHardPoints(float _deltaTime)
 	for(int i = 0; i < mHardPoints.size(); ++i)
 	{
 		if(mHardPoints[i].isUsed())
-			mHardPoints[i].mElapsedTime += _deltaTime;
+			mHardPoints[i].update(_deltaTime);
 	}
 }
 
@@ -195,7 +189,7 @@ void Ship::saveState(SectorTick _tick)
 	{
 		if(mHardPoints[i].isUsed())
 		{
-			hardpointsState.push_back(std::make_pair(mHardPoints[i].getIndex(), mHardPoints[i].mElapsedTime));
+			hardpointsState.push_back(std::make_pair(mHardPoints[i].getIndex(), mHardPoints[i].getWeapon().mElapsedTime));
 		}
 	}
 
@@ -236,7 +230,7 @@ void Ship::setState(SectorTick _tick)
 		int index = harpointsState[i].first;
 		if(mHardPoints[index].isUsed())
 		{
-			mHardPoints[index].mElapsedTime = harpointsState[i].second;
+			mHardPoints[index].getWeapon().mElapsedTime = harpointsState[i].second;
 		}
 	}
 }
@@ -274,7 +268,7 @@ void Ship::serialize(RakNet::BitStream& _bitStream) const
 	{
 		if (mHardPoints[i].isUsed())
 		{
-			hardpointsState.push_back(std::make_pair(mHardPoints[i].getIndex(), mHardPoints[i].mElapsedTime));
+			hardpointsState.push_back(std::make_pair(mHardPoints[i].getIndex(), mHardPoints[i].getWeapon().mElapsedTime));
 		}
 	}
 

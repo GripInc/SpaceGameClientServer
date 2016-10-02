@@ -1,7 +1,12 @@
-#include "utils/BulletCallBacks.h"
+#include "utils/BulletUtils.h"
 
 #include "BulletDynamics/btBulletDynamicsCommon.h"
 #include "BulletCollision/btBulletCollisionCommon.h"
+#include "BulletCollision/CollisionShapes/btShapeHull.h"
+
+#include "factories/TriangleMeshFactory.h"
+
+#include "OgreMeshManager.h"
 
 #include "model/ObjectPart.h"
 #include "model/StaticObject.h"
@@ -87,4 +92,53 @@ bool MyContactCallback(btManifoldPoint& cp, const btCollisionObjectWrapper* colO
 	staticObject1->getRigidBody()->setUserIndex(index1);
 
 	return true;
+}
+
+btCollisionShape* createCollisionShape(const CollisionShapeSettings& _collisionShapeSettings, void* _userPointer)
+{
+	btCollisionShape* result;
+
+	if (_collisionShapeSettings.mMesh != "")
+	{
+		btTriangleMesh* triangleMesh = TriangleMeshFactory::getInstance().getTriangleMesh(_collisionShapeSettings.mMesh);
+		if (!triangleMesh)
+			triangleMesh = TriangleMeshFactory::getInstance().addTriangleMesh(_collisionShapeSettings.mMesh, Ogre::MeshManager::getSingleton().load(_collisionShapeSettings.mMesh, Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME));
+
+		if (_collisionShapeSettings.mNeedConvexHullShape)
+		{
+			btConvexShape* tmpConvexShape = new btConvexTriangleMeshShape(triangleMesh);
+
+			//create a hull approximation
+			btShapeHull* hull = new btShapeHull(tmpConvexShape);
+			btScalar margin = tmpConvexShape->getMargin();
+			hull->buildHull(margin);
+			tmpConvexShape->setUserPointer(hull);
+
+			btConvexHullShape* convexShape = new btConvexHullShape();
+
+			for (int i = 0; i < hull->numVertices(); i++)
+			{
+				convexShape->addPoint(hull->getVertexPointer()[i], false);
+			}
+			convexShape->recalcLocalAabb();
+
+			convexShape->initializePolyhedralFeatures();
+
+			delete tmpConvexShape;
+			delete hull;
+
+			result = convexShape;
+		}
+		else
+		{
+			result = new btConvexTriangleMeshShape(triangleMesh);
+		}
+	}
+	else
+	{
+		result = new btBoxShape(_collisionShapeSettings.mInitialScale / 2.f); // /2.f because bullet use half the size
+	}
+
+	result->setUserPointer(_userPointer);
+	return result;
 }

@@ -18,6 +18,10 @@ public:
 		return success;
 	}
 
+	float getTurnRateMultiplier() const { return mTurnRateMultiplier; }
+	float getInertiaMultiplier() const { return mInertiaMultiplier; }
+
+protected:
 	float mTurnRateMultiplier;
 	float mInertiaMultiplier;
 };
@@ -43,7 +47,7 @@ public:
 	const DirectionalSettings* getDirectionalSettings(const std::string& _directional) const
 	{
 		for(int i = 0; i < mDirectionals.size(); ++i)
-			if(mDirectionals[i].mName.compare(_directional) == 0)
+			if(mDirectionals[i].getName().compare(_directional) == 0)
 				return &mDirectionals[i];
 
 		return NULL;

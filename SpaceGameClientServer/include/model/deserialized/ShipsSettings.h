@@ -69,7 +69,7 @@ public:
 	const ShipSettings* getShipSettings(const std::string& _shipName) const
 	{
 		for(int i = 0; i < mShips.size(); ++i)
-			if(mShips[i].mName.compare(_shipName) == 0)
+			if(mShips[i].getName().compare(_shipName) == 0)
 				return &mShips[i];
 
 		return NULL;

@@ -2,12 +2,12 @@
 
 #include "model/GameSettings.h"
 
-void Directional::init(const DirectionalSettings& _settings)
+void Directional::init(const DirectionalSettings* _settings)
 {
-	mName = _settings.mName;
-	mSpace = _settings.mSpace;
-	mHitPoints = _settings.mHitPoints;
-	mMass = _settings.mMass;
-	mTurnRateMultiplier = _settings.mTurnRateMultiplier;
-	mInertiaMultiplier = _settings.mInertiaMultiplier;
+	mName = _settings->getName();
+	mSpace = _settings->getSpace();
+	mHitPoints = _settings->getHitPoints();
+	mMass = _settings->getMass();
+	mTurnRateMultiplier = _settings->getTurnRateMultiplier();
+	mInertiaMultiplier = _settings->getInertiaMultiplier();
 }

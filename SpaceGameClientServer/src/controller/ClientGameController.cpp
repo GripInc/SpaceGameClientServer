@@ -62,12 +62,12 @@ void ClientGameController::startGame(const RakNet::RakString& _playerData)
 	mPlayerData.mPlayerShip.initModel(GameSettings::getInstance().getShip(mPlayerData.mShipId));
 
 	//DEBUG
-	mPlayerData.mPlayerShip.addEngine(*GameSettings::getInstance().getEngine("FirstEngine"));
-	mPlayerData.mPlayerShip.addDirectional(*GameSettings::getInstance().getDirectional("SecondDirectional"));
-	mPlayerData.mPlayerShip.addWeapon(*GameSettings::getInstance().getWeapon("Gun1"), 0);
-	mPlayerData.mPlayerShip.addWeapon(*GameSettings::getInstance().getWeapon("Gun1"), 1);
-	mPlayerData.mPlayerShip.addWeapon(*GameSettings::getInstance().getWeapon("Gun1"), 2);
-	mPlayerData.mPlayerShip.addWeapon(*GameSettings::getInstance().getWeapon("Gun1"), 3);
+	mPlayerData.mPlayerShip.addEngine(GameSettings::getInstance().getEngine("FirstEngine"));
+	mPlayerData.mPlayerShip.addDirectional(GameSettings::getInstance().getDirectional("SecondDirectional"));
+	mPlayerData.mPlayerShip.addWeapon(GameSettings::getInstance().getWeapon("Gun1"), 0);
+	mPlayerData.mPlayerShip.addWeapon(GameSettings::getInstance().getWeapon("Gun1"), 1);
+	mPlayerData.mPlayerShip.addWeapon(GameSettings::getInstance().getWeapon("Gun1"), 2);
+	mPlayerData.mPlayerShip.addWeapon(GameSettings::getInstance().getWeapon("Gun1"), 3);
 
 	switchToStationMode(mPlayerData.mLastStation);
 }

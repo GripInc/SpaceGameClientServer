@@ -16,6 +16,10 @@ public:
 		return true;
 	}
 
+	float getLifeTime() const { return mLifeTime; }
+	float getSpeed() const { return mSpeed; }
+
+protected:
 	float mLifeTime = 0.f;
 	float mSpeed = 0.f;
 };
@@ -41,7 +45,7 @@ public:
 	const ShotSettings* getShotSettings(const std::string& _shotName) const
 	{
 		for(size_t i = 0; i < mShots.size(); ++i)
-			if(mShots[i].mName.compare(_shotName) == 0)
+			if(mShots[i].getName().compare(_shotName) == 0)
 				return &mShots[i];
 
 		return NULL;

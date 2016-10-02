@@ -18,6 +18,10 @@ public:
 		return success;
 	}
 
+	unsigned int getRegeneration() const { return mRegeneration; }
+	unsigned int getCapacity() const { return mCapacity; }
+
+protected:
 	unsigned int mRegeneration = 0U;
 	unsigned int mCapacity = 0U;
 };
@@ -43,7 +47,7 @@ public:
 	const ShieldSettings* getShieldSettings(const std::string& _shield) const
 	{
 		for(int i = 0; i < mShields.size(); ++i)
-			if(mShields[i].mName.compare(_shield) == 0)
+			if(mShields[i].getName().compare(_shield) == 0)
 				return &mShields[i];
 
 		return NULL;

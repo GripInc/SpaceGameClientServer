@@ -27,13 +27,20 @@ public:
 		return success;
 	}
 
+	float getReactivity() const { return mReactivity; }
+	float getPower() const { return mPower; }
+	float getMaxSpeed() const { return mMaxSpeed; }
+	float getThrustSensitivity() const { return mThrustSensitivity; }
+	float getThrustMaxValue() const { return mThrustMaxValue; }
+	float getConsumption() const { return mConsumption; }
+	Types::EngineType getType() const { return mType; }
+
+protected:
 	float mReactivity = 0.f;
 	float mPower = 0.f;
 	float mMaxSpeed = 0.f;
 	float mThrustSensitivity = 0.f;
 	float mThrustMaxValue = 0.f;
-	unsigned int mSpace = 0U;
-	unsigned int mHitPoints = 0U;
 	float mConsumption = 0.f;
 	Types::EngineType mType;
 };
@@ -59,7 +66,7 @@ public:
 	const EngineSettings* getEngineSettings(const std::string& _engine) const
 	{
 		for(int i = 0; i < mEngines.size(); ++i)
-			if(mEngines[i].mName.compare(_engine) == 0)
+			if(mEngines[i].getName().compare(_engine) == 0)
 				return &mEngines[i];
 
 		return NULL;

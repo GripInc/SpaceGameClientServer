@@ -43,6 +43,11 @@ public:
 		return success;
 	}
 
+	float getArmorSurface() const { return mArmorSurface; }
+	const std::vector<Types::EquipementType>& getAllowedParts() const { return mAllowedParts; }
+	const btAlignedObjectArray<CollisionShapeSettings>& getCollisionShapes() const { return mCollisionShapes; }
+
+protected:
 	float mArmorSurface = 0.f;
 
 	std::vector<Types::EquipementType> mAllowedParts;

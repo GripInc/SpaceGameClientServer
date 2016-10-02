@@ -33,7 +33,7 @@ public:
 		//HardPoint
 		tinyxml2::XMLElement* hardPointNode = _node->FirstChildElement("HardPoint");
 		if(hardPointNode)
-			mHardPoint.deserialize(hardPointNode);
+			mHardPointSettings.deserialize(hardPointNode);
 		else
 			success = false;
 
@@ -51,11 +51,21 @@ public:
 		return success;
 	}
 
+	const std::string& getShotType() const { return mShotType; }
+	const std::string& getMesh() const { return mMesh; }
+	float getFireRate() const { return mFireRate; }
+	const btVector3& getNoslePosition() const { return mNoslePosition; }
+	const HardPointSettings& getHardPointSettings() const { return mHardPointSettings; }
+	unsigned int getHitPoints() const { return mHitPoints; }
+	float getConsumption() const { return mConsumption; }
+	const btAlignedObjectArray<CollisionShapeSettings>& getCollisionShapes() const { return mCollisionShapes; }
+
+protected:
 	std::string mShotType;
 	std::string mMesh;
 	float mFireRate = 0.f; //in sec
 	btVector3 mNoslePosition;
-	HardPointSettings mHardPoint;
+	HardPointSettings mHardPointSettings;
 	unsigned int mHitPoints = 0U;
 	float mConsumption = 0.f;
 
@@ -83,7 +93,7 @@ public:
 	const WeaponSettings* getWeaponSettings(const std::string& _weapon) const
 	{
 		for(int i = 0; i < mWeapons.size(); ++i)
-			if(mWeapons[i].mName.compare(_weapon) == 0)
+			if(mWeapons[i].getName().compare(_weapon) == 0)
 				return &mWeapons[i];
 
 		return NULL;

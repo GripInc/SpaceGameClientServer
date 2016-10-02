@@ -23,6 +23,12 @@ public:
 		return success;
 	}
 
+	float getConsumption() const { return mConsumption; }
+	float getPowerMultiplier() const { return mPowerMultiplier; }
+	float getMaxSpeedMultiplier() const { return mMaxSpeedMultiplier; }
+	Types::EngineType getType() const { return mType; }
+
+protected:
 	float mConsumption = 0.f;
 	float mPowerMultiplier = 0.f;
 	float mMaxSpeedMultiplier = 0.f;
@@ -50,7 +56,7 @@ public:
 	const PostCombustionSettings* getPostCombustionSettings(const std::string& _postCombustion) const
 	{
 		for(int i = 0; i < mPostCombustions.size(); ++i)
-			if(mPostCombustions[i].mName.compare(_postCombustion) == 0)
+			if(mPostCombustions[i].getName().compare(_postCombustion) == 0)
 				return &mPostCombustions[i];
 
 		return NULL;

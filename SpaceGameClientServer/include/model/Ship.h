@@ -29,10 +29,10 @@ public:
 
 	void attachCamera(Ogre::SceneNode* _cameraSceneNode);
 
-	void addEngine(const EngineSettings& _engine);
-	void addDirectional(const DirectionalSettings& _directional);
-	void addWeapon(const WeaponSettings& _weapon, int _index);
-	const WeaponSettings& removeWeapon(int _index);
+	void addEngine(const EngineSettings* _engine);
+	void addDirectional(const DirectionalSettings* _directional);
+	void addWeapon(const WeaponSettings* _weapon, int _index);
+	void removeWeapon(int _index);
 	
 	///Getters
 	float getMaxYawRate() const { return mMaxYawRate; }

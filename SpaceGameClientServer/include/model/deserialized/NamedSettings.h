@@ -16,6 +16,9 @@ public:
 		return success;
 	}
 
+	const std::string& getName() const { return mName; }
+
+protected:
 	std::string mName;
 };
 

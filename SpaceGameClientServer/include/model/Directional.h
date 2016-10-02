@@ -8,7 +8,7 @@ class DirectionalSettings;
 class Directional
 {
 public:
-	void init(const DirectionalSettings& _settings);
+	void init(const DirectionalSettings* _settings);
 
 	float getInertiaMultiplier() const { return mInertiaMultiplier; }
 	float getTurnRateMultiplier() const { return mTurnRateMultiplier; }

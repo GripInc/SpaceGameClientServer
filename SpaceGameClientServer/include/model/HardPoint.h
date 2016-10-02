@@ -4,8 +4,7 @@
 #include <string>
 #include "LinearMath/btVector3.h"
 
-#include "model/deserialized/WeaponsSettings.h"
-#include "model/deserialized/ShotsSettings.h"
+#include "model/Weapon.h"
 
 class HardPoint
 {
@@ -21,23 +20,23 @@ public:
 	const btVector3& getPosition() const { return mPosition; }
 	float getRoll() const { return mRoll; }
 
-	void attachWeapon(const WeaponSettings& _weaponSettings);
-	void detachWeapon() { mWeaponSettings.mName.clear(); }
-	bool isUsed() const { return !mWeaponSettings.mName.empty(); }
+	void attachWeapon(const WeaponSettings* _weaponSettings);
+	void detachWeapon() { mEmpty = true; }
+	bool isUsed() const { return !mEmpty; }
 
-	const WeaponSettings& getWeaponSettings() const { return mWeaponSettings; }
-	const ShotSettings& getShotSettings() const { return mShotSettings; }
+	const Weapon& getWeapon() const { return mWeapon; }
+	Weapon& getWeapon() { return mWeapon; }
 
-	//mElapsedTime since last use
-	float mElapsedTime = 0.f;
+	void update(float _deltaTime);
 
 protected:
 	int mIndex = 0;
 	btVector3 mPosition;
 	float mRoll = 0.f;
 
-	WeaponSettings mWeaponSettings;
-	ShotSettings mShotSettings;
+	bool mEmpty = true;
+
+	Weapon mWeapon;
 };
 
 #endif //_HARD_POINT_H_
