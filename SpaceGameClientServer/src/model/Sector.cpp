@@ -223,91 +223,105 @@ void Sector::setSectorState(SectorTick _tick)
 
 void Sector::updateShipSystems(const InputState& _input, Ship* _ship, float _deltaTime)
 {
+	Engine& shipEngine = _ship->getEngine();
+
 	///////////////////
 	//Handling thrust//
 	///////////////////
+	float& wantedThrust = shipEngine.mWantedThrust;
+	float& realThrust = shipEngine.mRealThrust;
+	const float thrustSensitivity = shipEngine.getThrustSensitivity();
+	const float thrustMaxValue = shipEngine.getThrustMaxValue();
+	const float reactivity = shipEngine.getReactivity();
+
 	if (_input.mZKeyPressed)
-		_ship->getEngine().mWantedThrust += _ship->getEngine().getThrustSensitivity() * _deltaTime;
+		wantedThrust += thrustSensitivity * _deltaTime;
 
 	if (_input.mSKeyPressed)
-		_ship->getEngine().mWantedThrust -= _ship->getEngine().getThrustSensitivity() * _deltaTime;
+		wantedThrust -= thrustSensitivity * _deltaTime;
 
 	if (_input.mAKeyPressed)
-		_ship->getEngine().mWantedThrust = _ship->getEngine().getThrustMaxValue();
+		wantedThrust = thrustMaxValue;
 
 	if (_input.mQKeyPressed)
-		_ship->getEngine().mWantedThrust = 0;
+		wantedThrust = 0;
 
 	//Checking thrust bounds values
-	if (_ship->getEngine().mWantedThrust > _ship->getEngine().getThrustMaxValue())
-		_ship->getEngine().mWantedThrust = _ship->getEngine().getThrustMaxValue();
-	if (_ship->getEngine().mWantedThrust < 0)
-		_ship->getEngine().mWantedThrust = 0;
+	if (wantedThrust > thrustMaxValue)
+		wantedThrust = thrustMaxValue;
+	if (wantedThrust < 0)
+		wantedThrust = 0;
 
 	//Adding or removing thrust
-	float deltaThrust = _ship->getEngine().mWantedThrust - _ship->getEngine().mRealThrust;
+	float deltaThrust = wantedThrust - realThrust;
 	float thrustToAdd = 0.f;
-	if (std::fabs(deltaThrust) < _ship->getEngine().getReactivity())
+	if (std::fabs(deltaThrust) < reactivity)
 	{
 		thrustToAdd = (std::fabs(deltaThrust) / 2.f);
 	}
 	else
 	{
-		thrustToAdd = _ship->getEngine().getReactivity();
+		thrustToAdd = reactivity;
 	}
 
 	if (deltaThrust > epsilon)
 	{
-		_ship->getEngine().mRealThrust += thrustToAdd * _deltaTime;
+		realThrust += thrustToAdd * _deltaTime;
 	}
 	else
 	{
-		_ship->getEngine().mRealThrust = _ship->getEngine().mWantedThrust;
+		realThrust = wantedThrust;
 	}
 
 	///////////////////////////////////
 	//Applying mouse movement on ship//
 	///////////////////////////////////
+	const float turnRateMultiplier = _ship->getDirectional().getTurnRateMultiplier();
 	//Yaw
+	float& currentYawForce = _ship->mCurrentYawForce;
 	if (!_input.mWKeyPressed && !_input.mXKeyPressed)
-		_ship->mCurrentYawForce = 0.f;
+		currentYawForce = 0.f;
 	else if (_input.mWKeyPressed)
-		_ship->mCurrentYawForce = -_ship->getMaxYawRate() * _ship->getDirectional().getTurnRateMultiplier();
+		currentYawForce = -_ship->getMaxYawRate() * turnRateMultiplier;
 	else
-		_ship->mCurrentYawForce = _ship->getMaxYawRate() * _ship->getDirectional().getTurnRateMultiplier();
+		currentYawForce = _ship->getMaxYawRate() * turnRateMultiplier;
 
 	//Pitch
+	float& currentPitchForce = _ship->mCurrentPitchForce;
+	const float maxPitchRate = _ship->getMaxPitchRate();
 	if (_input.mMouseYAbs != 0.f)
 	{
 		//Mouse control
-		_ship->mCurrentPitchForce = _input.mMouseYAbs * _ship->getMaxPitchRate() * _ship->getDirectional().getTurnRateMultiplier();
+		currentPitchForce = _input.mMouseYAbs * maxPitchRate * turnRateMultiplier;
 	}
 	else
 	{
 		//Keyboard control
 		if (!_input.mUpKeyPressed && !_input.mDownKeyPressed)
-			_ship->mCurrentPitchForce = 0.f;
+			currentPitchForce = 0.f;
 		else if (_input.mUpKeyPressed)
-			_ship->mCurrentPitchForce = -_ship->getMaxPitchRate() * _ship->getDirectional().getTurnRateMultiplier();
+			currentPitchForce = -maxPitchRate * turnRateMultiplier;
 		else
-			_ship->mCurrentPitchForce = _ship->getMaxPitchRate() * _ship->getDirectional().getTurnRateMultiplier();
+			currentPitchForce = maxPitchRate * turnRateMultiplier;
 	}
 
 	//Roll
+	float& currentRollForce = _ship->mCurrentRollForce;
+	const float maxRollRate = _ship->getMaxRollRate();
 	if (_input.mMouseXAbs != 0.f)
 	{
 		//Mouse control
-		_ship->mCurrentRollForce = _input.mMouseXAbs * _ship->getMaxRollRate() * _ship->getDirectional().getTurnRateMultiplier();
+		currentRollForce = _input.mMouseXAbs * maxRollRate * turnRateMultiplier;
 	}
 	else
 	{
 		//Keyboard control
 		if (!_input.mLeftKeyPressed && !_input.mRightKeyPressed)
-			_ship->mCurrentRollForce = 0.f;
+			currentRollForce = 0.f;
 		else if (_input.mLeftKeyPressed)
-			_ship->mCurrentRollForce = -_ship->getMaxRollRate() * _ship->getDirectional().getTurnRateMultiplier();
+			currentRollForce = -maxRollRate * turnRateMultiplier;
 		else
-			_ship->mCurrentRollForce = _ship->getMaxRollRate() * _ship->getDirectional().getTurnRateMultiplier();
+			currentRollForce = maxRollRate * turnRateMultiplier;
 	}
 
 	//Add shot
@@ -334,8 +348,8 @@ void Sector::updateShipSystems(const InputState& _input, Ship* _ship, float _del
 	/////////////////////////////////////////
 	//Applying ship engine power and thrust//
 	/////////////////////////////////////////
-	_ship->mEnginePotentialForce = -_ship->getEngine().mRealThrust;
-	_ship->mEnginePotentialForce *= _ship->getEngine().getPower();
+	_ship->mEnginePotentialForce = -shipEngine.mRealThrust;
+	_ship->mEnginePotentialForce *= shipEngine.getPower();
 
 	_ship->updateForces();
 }
