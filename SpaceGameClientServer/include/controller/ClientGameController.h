@@ -86,8 +86,11 @@ protected:
 
 	PlayerData mPlayerData;
 
-	// Ogre::FrameListener
-	virtual bool frameRenderingQueued(const Ogre::FrameEvent& evt) override;
+	//Specialized functions (client or server) used in frameRenderingQueued
+	virtual void processNetworkBuffer() override;
+	virtual void updateSector() override;
+	virtual void updateDebugPanel(Ogre::Real _timeSinceLastFrame) override;
+	virtual void handleSwitching() override;
 
 	virtual bool keyPressed(const OIS::KeyEvent &arg) override;
 	virtual bool keyReleased(const OIS::KeyEvent &arg) override;

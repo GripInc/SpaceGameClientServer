@@ -43,3 +43,52 @@ void GameController::init(const std::string& _gameSettingsFilePath, Ogre::Root* 
 	mDebugPanelLastRefresh = 0.f;
 	mLaggyValue = 0;
 }
+
+bool GameController::frameRenderingQueued(const Ogre::FrameEvent& evt)
+{
+	//DeltaTime
+	if (evt.timeSinceLastFrame == 0.f)
+		return true;
+
+	mGameUpdateAccumulator += evt.timeSinceLastFrame;
+
+	mLoopTimer.reset();
+	unsigned long loopDurationTime = mLoopTimer.getMilliseconds();
+	while (mGameUpdateAccumulator > GAME_UPDATE_RATE)
+	{
+		LoggerManager::getInstance().logI(LOG_CLASS_TAG, "frameRenderingQueued", "Entering update loop.", false);
+
+		//Network
+		processNetworkBuffer();
+
+		//Update sector
+		updateSector();
+
+		//Capture input and pass it to all registered controllers
+		mInputController->capture();
+
+		mGameUpdateAccumulator -= GAME_UPDATE_RATE;
+	}
+	loopDurationTime = mLoopTimer.getMilliseconds() - loopDurationTime;
+
+	if (loopDurationTime > GAME_UPDATE_RATE * 1000)
+		LoggerManager::getInstance().logW(LOG_CLASS_TAG, "frameRenderingQueued", "loopDurationTime was " + StringUtils::toStr(loopDurationTime) + " : Simulation is getting late!");
+
+	//Debug panel
+	updateDebugPanel(evt.timeSinceLastFrame);
+	
+	//DEBUG
+	for (int i = 0; i < mLaggyValue; i++)
+	{
+		mLaggyValue = mLaggyValue;
+	}
+
+	//Handle switching if needed (client only)
+	handleSwitching();
+
+	return true;
+}
+
+void GameController::handleSwitching()
+{
+}

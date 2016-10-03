@@ -111,44 +111,22 @@ PlayerData* ServerGameController::getPlayerData(const RakNet::RakNetGUID& _clien
 	return NULL;
 }
 
-bool ServerGameController::frameRenderingQueued(const Ogre::FrameEvent& evt)
+void ServerGameController::processNetworkBuffer()
 {
-	//DeltaTime
-	if (evt.timeSinceLastFrame == 0.f)
-		return true;
+	ServerNetworkService::getInstance().processNetworkBuffer();
+}
 
-	mGameUpdateAccumulator += evt.timeSinceLastFrame;
-
-	mLoopTimer.reset();
-	unsigned long loopDurationTime = mLoopTimer.getMilliseconds();
-	while (mGameUpdateAccumulator > GAME_UPDATE_RATE)
+void ServerGameController::updateSector()
+{
+	if (mSectorController)
 	{
-		LoggerManager::getInstance().logI(LOG_CLASS_TAG, "frameRenderingQueued", "Entering update loop.", false);
-
-		//Network
-		//Write input in mClientsInput if any in buffer
-		//Receive launch requests
-		ServerNetworkService::getInstance().processNetworkBuffer();
-
-		if (mSectorController)
-		{
-			//Sector update for next sector tick
-			
-			//TODO server specific
-			mSectorController->updateSector();
-		}
-
-		//Capture input and pass it to all registered controllers
-		mInputController->capture();
-
-		mGameUpdateAccumulator -= GAME_UPDATE_RATE;
+		//Sector update for next sector tick
+		mSectorController->updateSector();
 	}
-	loopDurationTime = mLoopTimer.getMilliseconds() - loopDurationTime;
+}
 
-	if (loopDurationTime > GAME_UPDATE_RATE * 1000)
-		LoggerManager::getInstance().logW(LOG_CLASS_TAG, "frameRenderingQueued", "loopDurationTime was " + StringUtils::toStr(loopDurationTime) + " : Simulation is getting late!");
-
-	//DEBUG PANEL
+void ServerGameController::updateDebugPanel(Ogre::Real _timeSinceLastFrame)
+{
 	if (mSectorController)
 	{
 		if (mUIController->getDebugPanel()->getAllParamNames().size() == 0)
@@ -171,7 +149,7 @@ bool ServerGameController::frameRenderingQueued(const Ogre::FrameEvent& evt)
 
 			mUIController->getDebugPanel()->setAllParamNames(paramNames);
 		}
-		mDebugPanelLastRefresh += evt.timeSinceLastFrame;
+		mDebugPanelLastRefresh += _timeSinceLastFrame;
 		if (mDebugPanelLastRefresh > sDebugPanelRefreshRate)
 		{
 			mUIController->getDebugPanel()->setParamValue(0, StringUtils::toStr(""));
@@ -191,14 +169,6 @@ bool ServerGameController::frameRenderingQueued(const Ogre::FrameEvent& evt)
 			mDebugPanelLastRefresh = 0.f;
 		}
 	}
-
-	//DEBUG
-	for (int i = 0; i < mLaggyValue; i++)
-	{
-		mLaggyValue = mLaggyValue;
-	}
-
-	return true;
 }
 
 void ServerGameController::instantiateClientShip(const RakNet::RakNetGUID& _clientId, std::string& _outSector, Ogre::Vector3& _outPosition, Ogre::Quaternion& _outOrientation, UniqueId& _shipUniqueId, SectorTick& _sectorTick)

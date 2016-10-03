@@ -31,7 +31,12 @@ protected:
 	UIController* mUIController = nullptr;
 
 	/// Ogre::FrameListener
-	virtual bool frameRenderingQueued(const Ogre::FrameEvent& evt) = 0;
+	bool frameRenderingQueued(const Ogre::FrameEvent& evt);
+
+	virtual void processNetworkBuffer() = 0;
+	virtual void updateSector() = 0;
+	virtual void updateDebugPanel(Ogre::Real _timeSinceLastFrame) = 0;
+	virtual void handleSwitching();
 
 	//DEBUG
 	float mDebugPanelLastRefresh = 0.f;

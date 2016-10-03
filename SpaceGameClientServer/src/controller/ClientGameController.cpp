@@ -145,42 +145,22 @@ void ClientGameController::receivedSectorState(RakNet::BitStream& _data) const
 		mSectorController->receivedSectorState(_data);
 }
 
-bool ClientGameController::frameRenderingQueued(const Ogre::FrameEvent& evt)
+void ClientGameController::processNetworkBuffer()
 {
-	//DeltaTime
-	if (evt.timeSinceLastFrame == 0.f)
-		return true;
+	ClientNetworkService::getInstance().processNetworkBuffer();
+}
 
-	mGameUpdateAccumulator += evt.timeSinceLastFrame;
-
-	mLoopTimer.reset();
-	unsigned long loopDurationTime = mLoopTimer.getMilliseconds();
-	while (mGameUpdateAccumulator > GAME_UPDATE_RATE)
+void ClientGameController::updateSector()
+{
+	if (mSectorController)
 	{
-		LoggerManager::getInstance().logI(LOG_CLASS_TAG, "frameRenderingQueued", "Entering update loop.", false);
-
-		//Network
-		//Write input in mClientsInput if any in buffer
-		//Receive launch requests
-		ClientNetworkService::getInstance().processNetworkBuffer();
-
-		if (mSectorController)
-		{
-			//Sector update for next sector tick
-			mSectorController->updateSector(mShipInputHandler);
-		}
-
-		//Capture input and pass it to all registered controllers
-		mInputController->capture();
-
-		mGameUpdateAccumulator -= GAME_UPDATE_RATE;
+		//Sector update for next sector tick
+		mSectorController->updateSector(mShipInputHandler);
 	}
-	loopDurationTime = mLoopTimer.getMilliseconds() - loopDurationTime;
+}
 
-	if (loopDurationTime > GAME_UPDATE_RATE * 1000)
-		LoggerManager::getInstance().logW(LOG_CLASS_TAG, "frameRenderingQueued", "loopDurationTime was " + StringUtils::toStr(loopDurationTime) + " : Simulation is getting late!");
-
-	//DEBUG PANEL
+void ClientGameController::updateDebugPanel(Ogre::Real _timeSinceLastFrame)
+{
 	if (mSectorController)
 	{
 		if (mUIController->getDebugPanel()->getAllParamNames().size() == 0)
@@ -203,7 +183,7 @@ bool ClientGameController::frameRenderingQueued(const Ogre::FrameEvent& evt)
 
 			mUIController->getDebugPanel()->setAllParamNames(paramNames);
 		}
-		mDebugPanelLastRefresh += evt.timeSinceLastFrame;
+		mDebugPanelLastRefresh += _timeSinceLastFrame;
 		if (mDebugPanelLastRefresh > sDebugPanelRefreshRate)
 		{
 			mUIController->getDebugPanel()->setParamValue(0, StringUtils::toStr(mSectorController->getPlayerShip()->getObjectParts()[0].mHitPoints));
@@ -223,14 +203,10 @@ bool ClientGameController::frameRenderingQueued(const Ogre::FrameEvent& evt)
 			mDebugPanelLastRefresh = 0.f;
 		}
 	}
+}
 
-	//DEBUG
-	for (int i = 0; i < mLaggyValue; i++)
-	{
-		mLaggyValue = mLaggyValue;
-	}
-
-	//Switch
+void ClientGameController::handleSwitching()
+{
 	if (mSwitchToSpaceData)
 	{
 		switchToInSpaceMode(mSwitchToSpaceData->mPosition, mSwitchToSpaceData->mOrientation, mSwitchToSpaceData->mSectorName, mSwitchToSpaceData->mUniqueId, mSwitchToSpaceData->mRakNetGUID, mSwitchToSpaceData->mSectorTick);
@@ -241,8 +217,6 @@ bool ClientGameController::frameRenderingQueued(const Ogre::FrameEvent& evt)
 		switchToStationMode(mSwitchToStationData->mStationName);
 		mSwitchToStationData = NULL;
 	}
-
-	return true;
 }
 
 //TODO move to UIController
