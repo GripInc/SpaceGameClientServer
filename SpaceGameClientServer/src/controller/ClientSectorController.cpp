@@ -11,33 +11,24 @@ namespace
 	const std::string LOG_CLASS_TAG = "SectorController";
 }
 
-void ClientSectorController::createSector(const std::string& _sectorName, Ogre::SceneManager* _sceneManager, float _sectorUpdateRate, SectorTick _startingSectorTick)
+void ClientSectorController::initSector(const std::string& _sectorName, Ogre::SceneManager* _sceneManager, float _sectorUpdateRate)
 {
-	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "createSector", "", false);
-
-	//Init sector
 	if (mCurrentSector != NULL)
 	{
 		LoggerManager::getInstance().logI(LOG_CLASS_TAG, "createSector", "Deleting sector because it was not NULL", false);
 		delete mCurrentSector;
 	}
 
-	mCurrentSector = new ClientSector(_sectorName, _sceneManager, _sectorUpdateRate, _startingSectorTick);
+	mCurrentSector = new ClientSector(_sectorName, _sceneManager, _sectorUpdateRate);
+}
 
-	// Create the Scene
-	mSectorView = new SectorView(_sceneManager);
-	mSectorView->createView(_sectorName);
+void ClientSectorController::setFirstTick(SectorTick _firstTick)
+{
+	mCurrentSector->setFirstTick(_firstTick); 
+}
 
-	//DEBUG memory monitoring
-	/*for(int i = 0; i < 10000; ++i)
-	{
-	mCurrentSector->instantiateObjects(GameSettings::getInstance().getSector(_sectorName), mSceneManager, mDynamicWorld);
-	//mCurrentSector->addShip(getNextId(), mSceneManager, mDynamicWorld, "FirstShip", Ogre::Quaternion::IDENTITY, Ogre::Vector3::ZERO);
-	delete mCurrentSector;
-	mCurrentSector = new Sector();
-	}*/
-
-	//Instantiate sector objects
+void ClientSectorController::instanciateSectorObjects()
+{
 	mCurrentSector->instantiateObjects();
 }
 

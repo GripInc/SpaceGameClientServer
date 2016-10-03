@@ -25,7 +25,7 @@ public:
 		std::map<SectorTick, InputState> mInputBuffer;
 	};
 
-	void createSector(const std::string& _sectorName, Ogre::SceneManager* _sceneManager, float _sectorUpdateRate, unsigned int _maxSectorTickRewindAmount);
+	void setMaxSectorTickRewindAmount(unsigned int _maxRewindAmount);
 
 	//Return the sector tick when the ship was created
 	void instantiateClientShip(const RakNet::RakNetGUID& _id, Ship& _ship, const Ogre::Vector3& _position, const Ogre::Quaternion& _orientation, UniqueId& _shipUniqueId, SectorTick& _sectorTick);
@@ -43,7 +43,10 @@ public:
 	virtual void switchDisplay() override;
 
 protected:
-	ServerSector* mCurrentSector;
+	ServerSector* mCurrentSector = nullptr;
+
+	virtual void initSector(const std::string& _sectorName, Ogre::SceneManager* _sceneManager, float _sectorUpdateRate) override;
+	virtual void instanciateSectorObjects() override;
 };
 
 #endif //_SERVER_SECTOR_CONTROLLER_H_

@@ -6,10 +6,19 @@
 class SectorView;
 class Sector;
 
+namespace Ogre
+{
+	class SceneManager;
+}
+
+class ISector;
+
 class SectorController
 {
 public:
 	
+	void createSector(const std::string& _sectorName, Ogre::SceneManager* _sceneManager, float _sectorUpdateRate);
+
 	//DEBUG
 	std::string mLastShotTarget;
 	std::string mLastCollidedPart0;
@@ -21,6 +30,13 @@ public:
 
 protected:
 	SectorView* mSectorView = nullptr;
+	ISector* mCurrentSector = nullptr;
+
+	virtual void initSector(const std::string& _sectorName, Ogre::SceneManager* _sceneManager, float _sectorUpdateRate) = 0;
+	virtual void instanciateSectorObjects() = 0;
+
+	//void instanciateSector(const std::string& _sectorName, Ogre::SceneManager* _sceneManager, float _sectorUpdateRate, unsigned int _maxSectorTickRewindAmount);
+	//void instanciateSector(const std::string& _sectorName, Ogre::SceneManager* _sceneManager, float _sectorUpdateRate, SectorTick _startingSectorTick);
 };
 
 #endif //_SECTOR_CONTROLLER_H_

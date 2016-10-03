@@ -22,7 +22,7 @@ namespace RakNet
 class ClientSectorController : public SectorController
 {
 public:
-	void createSector(const std::string& _sectorName, Ogre::SceneManager* _sceneManager, float _sectorUpdateRate, SectorTick _startingSectorTick);
+	void setFirstTick(SectorTick _firstTick);
 	void instantiatePlayerShip(Ship& _playerShip, const Ogre::Vector3& _position, const Ogre::Quaternion& _orientation, UniqueId _uniqueId, RakNet::RakNetGUID _rakNetGUID, Ogre::SceneNode* _cameraSceneNode);
 
 	//Getters
@@ -41,6 +41,9 @@ public:
 
 protected:
 	ClientSector* mCurrentSector = nullptr;
+
+	virtual void initSector(const std::string& _sectorName, Ogre::SceneManager* _sceneManager, float _sectorUpdateRate) override;
+	virtual void instanciateSectorObjects() override;
 };
 
 #endif //_CLIENT_SECTOR_CONTROLLER_H_

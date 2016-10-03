@@ -135,7 +135,8 @@ void ClientGameController::switchToInSpaceMode(const Ogre::Vector3& _position, c
 
 	//Create sector
 	mSectorController = new ClientSectorController();
-	mSectorController->createSector(_sectorName, mSceneManager, GAME_UPDATE_RATE, _sectorTick);
+	mSectorController->createSector(_sectorName, mSceneManager, GAME_UPDATE_RATE);
+	mSectorController->setFirstTick(_sectorTick);
 	mSectorController->instantiatePlayerShip(mPlayerData.mPlayerShip, _position, _orientation, _uniqueId, _rakNetGUID, PlayerCamera::getInstance().getCameraNode());
 }
 

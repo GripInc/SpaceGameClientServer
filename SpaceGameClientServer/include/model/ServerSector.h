@@ -32,10 +32,11 @@ namespace Ogre
 class ServerSector : public Sector
 {
 public:
-	ServerSector(const std::string& _sectorName, Ogre::SceneManager* _sceneManager, float _sectorUpdateRate, unsigned int _maxSectorTickRewindAmount)
-		: Sector(_sectorName, _sceneManager, _sectorUpdateRate),
-		mClientsInput(_maxSectorTickRewindAmount)
+	ServerSector(const std::string& _sectorName, Ogre::SceneManager* _sceneManager, float _sectorUpdateRate)
+		: Sector(_sectorName, _sceneManager, _sectorUpdateRate)
 	{}
+
+	void setMaxSectorTickRewindAmount(unsigned int _maxRewindAmount) { mClientsInput.init(_maxRewindAmount); }
 	
 	//Add dynamic objects and instantiate them
 	void instantiateClientShip(const RakNet::RakNetGUID& _id, Ship& _ship, const Ogre::Quaternion& _orientation, const Ogre::Vector3& _position, UniqueId& _shipUniqueId, SectorTick& _sectorTick);

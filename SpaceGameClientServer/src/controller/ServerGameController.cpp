@@ -59,7 +59,8 @@ void ServerGameController::startGame()
 	mSectorController = new ServerSectorController();
 
 	//Create sector
-	mSectorController->createSector("Alpha", mSceneManager, GAME_UPDATE_RATE, MAX_SECTOR_TICK_REWIND_AMOUNT);
+	mSectorController->createSector("Alpha", mSceneManager, GAME_UPDATE_RATE);
+	mSectorController->setMaxSectorTickRewindAmount(MAX_SECTOR_TICK_REWIND_AMOUNT);
 
 	//Create player camera controller
 	mCameraController = new CameraController(PlayerCamera::getInstance().getCamera());

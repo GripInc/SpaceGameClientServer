@@ -34,11 +34,11 @@ namespace RakNet
 class ClientSector : public Sector
 {
 public:
-	ClientSector(const std::string& _sectorName, Ogre::SceneManager* _sceneManager, float _sectorUpdateRate, SectorTick _startingSectorTick)
+	ClientSector(const std::string& _sectorName, Ogre::SceneManager* _sceneManager, float _sectorUpdateRate)
 		: Sector(_sectorName, _sceneManager, _sectorUpdateRate)
-	{
-		mSectorTick = _startingSectorTick;
-	}
+	{}
+
+	void setFirstTick(SectorTick _firstTick) { mSectorTick = _firstTick; }
 
 	//void instantiateShip(const std::string& _shipId, const Ogre::Quaternion& _orientation, const Ogre::Vector3& _position, RakNet::RakNetGUID _rakNetGUID);
 	void instantiatePlayerShip(Ship& _playerShip, const Ogre::Quaternion& _orientation, const Ogre::Vector3& _position, UniqueId _uniqueId, RakNet::RakNetGUID _rakNetGUID, Ogre::SceneNode* _cameraSceneNode);

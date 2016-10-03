@@ -13,8 +13,9 @@ typedef std::map<RakNet::RakNetGUID, InputState> ClientsInputMap;
 class InputHistoryManager
 {
 public:
-	InputHistoryManager(unsigned int _maxRewindAmount) : mMaxRewindAmount(_maxRewindAmount) 
+	void init(unsigned int _maxRewindAmount)
 	{
+		mMaxRewindAmount = _maxRewindAmount;
 		mOldestUnsimulatedTick = 0;
 		mCurrentSectorTick = 0;
 	}
@@ -33,7 +34,8 @@ public:
 	void update(SectorTick _sectorTick);
 
 protected:
-	const unsigned int mMaxRewindAmount;
+	//Do not modify it once setted
+	unsigned int mMaxRewindAmount = 0;
 	std::map<SectorTick, ClientsInputMap> mClientsInputByTick;
 	SectorTick mOldestUnsimulatedTick;
 	SectorTick mCurrentSectorTick;

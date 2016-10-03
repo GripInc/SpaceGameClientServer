@@ -11,33 +11,24 @@ namespace
 	const std::string LOG_CLASS_TAG = "SectorController";
 }
 
-void ServerSectorController::createSector(const std::string& _sectorName, Ogre::SceneManager* _sceneManager, float _sectorUpdateRate, unsigned int _maxSectorTickRewindAmount)
+void ServerSectorController::initSector(const std::string& _sectorName, Ogre::SceneManager* _sceneManager, float _sectorUpdateRate)
 {
-	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "createSector", "", false);
-
-	//Init sector
 	if (mCurrentSector != NULL)
 	{
 		LoggerManager::getInstance().logI(LOG_CLASS_TAG, "createSector", "Deleting sector because it was not NULL", false);
 		delete mCurrentSector;
 	}
 
-	mCurrentSector = new ServerSector(_sectorName, _sceneManager, _sectorUpdateRate, _maxSectorTickRewindAmount);
+	mCurrentSector = new ServerSector(_sectorName, _sceneManager, _sectorUpdateRate);
+}
 
-	// Create the Scene
-	mSectorView = new SectorView(_sceneManager);
-	mSectorView->createView(_sectorName);
+void ServerSectorController::setMaxSectorTickRewindAmount(unsigned int _maxRewindAmount)
+{
+	mCurrentSector->setMaxSectorTickRewindAmount(_maxRewindAmount); 
+}
 
-	//DEBUG memory monitoring
-	/*for(int i = 0; i < 10000; ++i)
-	{
-	mCurrentSector->instantiateObjects(GameSettings::getInstance().getSector(_sectorName), mSceneManager, mDynamicWorld);
-	//mCurrentSector->addShip(getNextId(), mSceneManager, mDynamicWorld, "FirstShip", Ogre::Quaternion::IDENTITY, Ogre::Vector3::ZERO);
-	delete mCurrentSector;
-	mCurrentSector = new Sector();
-	}*/
-
-	//instantiate sector objects
+void ServerSectorController::instanciateSectorObjects()
+{
 	mCurrentSector->instantiateObjects();
 }
 
