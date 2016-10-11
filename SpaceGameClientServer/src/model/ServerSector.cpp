@@ -43,9 +43,6 @@ void ServerSector::instantiateClientShip(const RakNet::RakNetGUID& _id, Ship& _s
 		mUsersIds.insert(_id);
 
 		LoggerManager::getInstance().logI(LOG_CLASS_TAG, "instantiateClientShip", "_sectorTick : " + StringUtils::toStr(_sectorTick) + "; _shipUniqueId : " + StringUtils::toStr(_shipUniqueId) + "; (GUID)_id : " + std::string(_id.ToString()) + "; _shipId : " + _ship.getName(), false);
-
-		//We want at least one neutral input
-		addInput(_id, mSectorTick, InputState());
 	}
 	else
 	{
@@ -56,74 +53,84 @@ void ServerSector::instantiateClientShip(const RakNet::RakNetGUID& _id, Ship& _s
 
 void ServerSector::updateSector()
 {
-	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateSector", "START: mSectorTick is : " + StringUtils::toStr(mSectorTick), false);
+	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateSector", "mSectorTick : " + StringUtils::toStr(mSectorTick) + "; mOldestUnsimulatedTick : " + StringUtils::toStr(mOldestUnsimulatedTick), false);
 
-	//resimulate from this input
-	//lastSimulatedInputTick = 0 if no rewind was performed, so clients were up to date at last broadcast
-	//lastSimulatedInputTick != 0 if a rewind was performed, so clients need new state at last input tick simulated (!= mSectorTick)
-	bool needBroadcast = simulateWorldForClientsHistory();
+	//From input history: find the oldest tick where an input was received and not resimulated
+	//Resimulate from this tick to current tick -> oldest unsimulated tick should be reset to current tick
+	//If no input at all, just update all ships with neutral input
+	//We can't avoid resimulate already simulated entities because new input can imply collisions
+	//Save state so we can use it to rewind. States should be clean for too old states and for states that are going to be replaced by recomputation (from resimulateFromSectorTick to currentTick)
 
-	saveSectorState();
+	//Each client will send input each tick -> reliable unordered. Unordered because server will broadcast its last state and client will rewind its simulation to this state, then simulate world with its input.
+	//
 
-	if (needBroadcast)
+	//It will resimulate from old unsimulated tick until current tick
+	
+	//Should handle 3 cases:
+	//oldest input unsimulated == 0 -> means no input at all -> simulate ships with neutral inputs
+	//oldest input unsimulated > 0 and < sectorTick -> means an input was inserted -> we want to resimulate from this tick
+	//oldest input unsimulated == sectorTick -> no new input was inserted -> input is based on input at sectorTick - 1 (created in update2) -> simulate tick
+
+	//As far as update2 did added copy for mSectorTick, it is safe to get input for mSectorTick if no input was inserted.
+	//SectorTick resimulateFromSectorTick = mClientsInput.getOldestUnsimulatedInput2(mOldestUnsimulatedTick, clientsInputMap);
+	
+	if (mOldestUnsimulatedTick == 0)
 	{
-		LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateSector", "Broadcasting to clients mSectorTick is : " + StringUtils::toStr(mSectorTick), false);
+		//No input existing
+		LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateSector", "mOldestUnsimulatedTick == 0", false);
 
-		//Sector state and last input broadcasting
-		RakNet::BitStream bitStream;
-		this->serialize(bitStream);
-		ServerNetworkService::getInstance().broadcastSector(mUsersIds, bitStream);
+		//Update all clients ship systems with clientsInputMap
+		updateShipsSystems(mSectorUpdateRate, ClientsInputMap());
+
+		//Step physical simulation
+		mDynamicWorld->stepSimulation(mSectorUpdateRate, 0, mSectorUpdateRate);
+
+		saveSectorState(mSectorTick);
 	}
-
-	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateSector", "BEFORE Updating mSectorTick : " + StringUtils::toStr(mSectorTick), false);
-	mSectorTick++;
-	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateSector", "AFTER Updating mSectorTick : " + StringUtils::toStr(mSectorTick), false);
-
-	mClientsInput.update(mSectorTick);
-
-	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateSector", "END: mSectorTick is : " + StringUtils::toStr(mSectorTick), false);
-}
-
-bool ServerSector::simulateWorldForClientsHistory()
-{
-	ClientsInputMap clientsInputMap;
-	SectorTick currentSectorTick = 0;
-	//The check for oldest possible rewind is done here
-	bool needRewind = mClientsInput.getOldestUnsimulatedInput(clientsInputMap, currentSectorTick);
-
-	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "simulateWorldForClientsHistory", "Oldest unsimulated is " + StringUtils::toStr(currentSectorTick), false);
-
-	//Rewind to a state then simulate until last input
-	if (needRewind)
+	//There are inputs to take care of
+	else if (mOldestUnsimulatedTick <= mSectorTick /* && mOldestUnsimulatedTick != 0 */)
 	{
-		LoggerManager::getInstance().logI(LOG_CLASS_TAG, "simulateWorldForClientsHistory", "Need rewind.", false);
+		LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateSector", "mOldestUnsimulatedTick <= mSectorTick", false);
 
-		//Set sector state to currentSectorTick
-		setSectorState(currentSectorTick);
-
-		while (true)
+		if (mOldestUnsimulatedTick < mSectorTick)
 		{
-			LoggerManager::getInstance().logI(LOG_CLASS_TAG, "simulateWorldForClientsHistory", "Resimulate tick " + StringUtils::toStr(currentSectorTick), false);
-
-			updateShipsSystems(mSectorUpdateRate, clientsInputMap);
-			mDynamicWorld->stepSimulation(mSectorUpdateRate, 1, mSectorUpdateRate);
-
-			currentSectorTick++;
-
-			if (currentSectorTick > mSectorTick)
-				break;
-
-			mClientsInput.getLastInputForAllClients(currentSectorTick, clientsInputMap);
+			LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateSector", "mOldestUnsimulatedTick < mSectorTick", false);
+			setSectorState(mOldestUnsimulatedTick - 1);
 		}
-	}
-	else
-	{
-		LoggerManager::getInstance().logI(LOG_CLASS_TAG, "simulateWorldForClientsHistory", "Don't need rewind. Simulate current tick : " + StringUtils::toStr(mSectorTick), false);
-		updateShipsSystems(mSectorUpdateRate, clientsInputMap);
-		mDynamicWorld->stepSimulation(mSectorUpdateRate, 1, mSectorUpdateRate);
+
+		ClientsInputMap clientsInputMap;
+		do
+		{
+			mClientsInput.getInput(mOldestUnsimulatedTick, clientsInputMap);
+
+			//Update all clients ship systems with clientsInputMap
+			updateShipsSystems(mSectorUpdateRate, clientsInputMap);
+
+			//Step physical simulation
+			mDynamicWorld->stepSimulation(mSectorUpdateRate, 0, mSectorUpdateRate);
+
+			//On each tick simulation, save state AFTER simulation with input.
+			saveSectorState(mOldestUnsimulatedTick);
+
+			mOldestUnsimulatedTick++;
+		}
+		while (mOldestUnsimulatedTick <= mSectorTick);
 	}
 
-	return needRewind;
+	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateSector", "Broadcasting to clients mSectorTick is : " + StringUtils::toStr(mSectorTick), false);
+	
+	//Sector state broadcasting
+	//TODO add last input
+	RakNet::BitStream bitStream;
+	this->serialize(bitStream);
+	ServerNetworkService::getInstance().broadcastSector(mUsersIds, bitStream);
+
+	mSectorTick++;
+
+	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateSector", "Updating sector tick : " + StringUtils::toStr(mSectorTick), false);
+
+	//Here, add copy of input from mSectorTick - 1 and update input history mCurrentSectorTick
+	mClientsInput.update(mSectorTick);
 }
 
 /*void Sector::updateShots(float _deltaTime)
@@ -178,19 +185,22 @@ void ServerSector::updateShipsSystems(float _deltaTime, const ClientsInputMap& _
 		Ship* clientShip = (*shipIt).second;
 		InputState& clientInput = InputState();
 
+		LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateShipsSystems", "Updating ship systems for GUID : " + StringUtils::toStr(clientId.ToString()), false);
+
 		//If we find input for the client we use it, else we use default
 		//With no update from client, input is unchanged, meaning that a key pressed is still pressed until client says i not anymore
-		//TODO best practice seems to be "send as much as input as we can to get pressed/unpressed states quite exact"
-		ClientsInputMap::const_iterator foundClientInput = _clientsInputMap.find(clientId);
+		const ClientsInputMap::const_iterator foundClientInput = _clientsInputMap.find(clientId);
 		if (foundClientInput != _clientsInputMap.end())
 		{
+			LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateShipsSystems", "Input was found", false);
 			clientInput = (*foundClientInput).second;
 		}
 		else
 		{
-			LoggerManager::getInstance().logE(LOG_CLASS_TAG, "updateShipsSystems", "No input found for clientId : " + std::string(clientId.ToString()));
-			assert(false);
+			LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateShipsSystems", "NO input was found", false);
 		}
+
+		LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateShipsSystems", "input is : " + clientInput.getDebugString(), false);
 
 		updateShipSystems(clientInput, clientShip, _deltaTime);
 	}
@@ -220,5 +230,10 @@ void ServerSector::serialize(RakNet::BitStream& _bitStream) const
 
 void ServerSector::addInput(const RakNet::RakNetGUID& _id, SectorTick _tick, const InputState& _clientInput)
 {
+	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "addInput", "mOldestUnsimulatedTick is : " + StringUtils::toStr(mOldestUnsimulatedTick) + "; _tick is : " + StringUtils::toStr(_tick), false);
+
 	mClientsInput.addInput(_id, _tick, _clientInput);
+
+	if(_tick < mOldestUnsimulatedTick || mOldestUnsimulatedTick == 0)
+		mOldestUnsimulatedTick = _tick;
 }

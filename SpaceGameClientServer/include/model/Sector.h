@@ -94,7 +94,7 @@ protected:
 	void setSectorState(SectorTick _tick);
 
 	//Save all entities states (not the sector himself)
-	void saveSectorState();
+	void saveSectorState(SectorTick _tick);
 
 	//Debug view utils
 	BulletDebugDraw* mBulletDebugDraw = nullptr;

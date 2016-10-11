@@ -24,6 +24,8 @@ void ClientSectorController::initSector(const std::string& _sectorName, Ogre::Sc
 
 void ClientSectorController::setFirstTick(SectorTick _firstTick)
 {
+	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "setFirstTick", "_firstTick is : " + StringUtils::toStr(_firstTick) , false);
+
 	mCurrentSector->setFirstTick(_firstTick); 
 }
 

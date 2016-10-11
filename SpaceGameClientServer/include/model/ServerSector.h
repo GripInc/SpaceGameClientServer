@@ -62,12 +62,11 @@ protected:
 	//Update ships systems
 	void updateShipsSystems(float _deltaTime, const ClientsInputMap& _clientsInputMap);
 
-	//Simulate from oldest acceptable input to the last one
-	//Return true if a rewind was performed
-	bool simulateWorldForClientsHistory();
-
 	//Clients input history of the sector
 	InputHistoryManager mClientsInput;
+
+	//Oldest unsimulated tick
+	SectorTick mOldestUnsimulatedTick = 0;
 };
 
 #endif //_SERVER_SECTOR_H_

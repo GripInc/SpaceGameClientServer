@@ -52,12 +52,13 @@ class ShipState : public DynamicObjectState
 public:
 	ShipState() {}
 
-	ShipState(const btRigidBody* _rigidBody, float _currentRollForce, float _currentYawForce, float _currentPitchForce, float _enginePotentialForce, const std::vector<std::pair<int, float> >& _harpointsState)
+	ShipState(const btRigidBody* _rigidBody, float _currentRollForce, float _currentYawForce, float _currentPitchForce, float _engineWantedThrust, float _engineRealThrust, const std::vector<std::pair<int, float> >& _harpointsState)
 		: DynamicObjectState(_rigidBody),
 		mCurrentRollForce(_currentRollForce),
 		mCurrentYawForce(_currentYawForce),
 		mCurrentPitchForce(_currentPitchForce),
-		mEnginePotentialForce(_enginePotentialForce),
+		mEngineWantedThrust(_engineWantedThrust),
+		mEngineRealThrust(_engineRealThrust),
 		mHarpointsState(_harpointsState)
 	{}
 
@@ -68,7 +69,8 @@ public:
 		_bitStream.Write(mCurrentRollForce);
 		_bitStream.Write(mCurrentYawForce);
 		_bitStream.Write(mCurrentPitchForce);
-		_bitStream.Write(mEnginePotentialForce);
+		_bitStream.Write(mEngineWantedThrust);
+		_bitStream.Write(mEngineRealThrust);
 
 		size_t hardpointsAmount = mHarpointsState.size();
 		_bitStream.Write(hardpointsAmount);
@@ -86,7 +88,8 @@ public:
 		_bitStream.Read(mCurrentRollForce);
 		_bitStream.Read(mCurrentYawForce);
 		_bitStream.Read(mCurrentPitchForce);
-		_bitStream.Read(mEnginePotentialForce);
+		_bitStream.Read(mEngineWantedThrust);
+		_bitStream.Read(mEngineRealThrust);
 
 		size_t hardpointsAmount;
 		_bitStream.Read(hardpointsAmount);
@@ -104,7 +107,8 @@ public:
 	float mCurrentYawForce = 0.f;
 	float mCurrentPitchForce = 0.f;
 
-	float mEnginePotentialForce = 0.f;
+	float mEngineWantedThrust = 0.f; 
+	float mEngineRealThrust = 0.f;
 
 	//Hardpoints (index, elapsedTime)
 	std::vector<std::pair<int, float> > mHarpointsState;

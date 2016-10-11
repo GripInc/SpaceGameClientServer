@@ -1,6 +1,7 @@
 #include "controller/GameController.h"
 
 #include "model/GameSettings.h"
+#include "SpaceGameTypes.h"
 
 #include "controller/InputController.h"
 #include "controller/SectorController.h"
@@ -17,7 +18,7 @@ namespace
 }
 
 const float GameController::sDebugPanelRefreshRate = 0.1f;
-const float GameController::GAME_UPDATE_RATE = 1.f / 30.f;
+const float GameController::GAME_UPDATE_RATE = 1.f / 20.f;
 
 /** Init */
 void GameController::init(const std::string& _gameSettingsFilePath, Ogre::Root* _root, Ogre::RenderWindow* _renderWindow, Ogre::SceneManager* _sceneManager, NetworkLayer& _networkLayer)
@@ -58,11 +59,11 @@ bool GameController::frameRenderingQueued(const Ogre::FrameEvent& evt)
 	{
 		LoggerManager::getInstance().logI(LOG_CLASS_TAG, "frameRenderingQueued", "Entering update loop.", false);
 
-		//Network
-		processNetworkBuffer();
-
 		//Update sector
 		updateSector();
+
+		//Process network buffer. In server, add clients input in history
+		processNetworkBuffer();
 
 		//Capture input and pass it to all registered controllers
 		mInputController->capture();

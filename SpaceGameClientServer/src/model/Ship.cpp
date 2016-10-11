@@ -193,7 +193,7 @@ void Ship::saveState(SectorTick _tick)
 		}
 	}
 
-	mStateManager.saveState(_tick, ShipState(mRigidBody, mCurrentRollForce, mCurrentYawForce, mCurrentPitchForce, mEnginePotentialForce, hardpointsState));
+	mStateManager.saveState(_tick, ShipState(mRigidBody, mCurrentRollForce, mCurrentYawForce, mCurrentPitchForce, mEngine.mWantedThrust, mEngine.mRealThrust, hardpointsState));
 }
 
 void Ship::overrideSavedState(SectorTick _tick, const ShipState& _shipState)
@@ -220,7 +220,8 @@ void Ship::setState(SectorTick _tick)
 	mCurrentYawForce = shipState.mCurrentYawForce;
 	mCurrentPitchForce = shipState.mCurrentPitchForce;
 
-	mEnginePotentialForce = shipState.mEnginePotentialForce;
+	mEngine.mWantedThrust = shipState.mEngineWantedThrust;
+	mEngine.mRealThrust = shipState.mEngineRealThrust;
 
 	//Hardpoints
 	const std::vector<std::pair<int, float> >& harpointsState = shipState.mHarpointsState;
@@ -272,6 +273,6 @@ void Ship::serialize(RakNet::BitStream& _bitStream) const
 		}
 	}
 
-	ShipState shipState(mRigidBody, mCurrentRollForce, mCurrentYawForce, mCurrentPitchForce, mEnginePotentialForce, hardpointsState);
+	ShipState shipState(mRigidBody, mCurrentRollForce, mCurrentYawForce, mCurrentPitchForce, mEngine.mWantedThrust, mEngine.mRealThrust, hardpointsState);
 	shipState.serialize(_bitStream);
 }

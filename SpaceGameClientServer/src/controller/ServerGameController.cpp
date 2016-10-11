@@ -205,7 +205,6 @@ void ServerGameController::instantiateClientShip(const RakNet::RakNetGUID& _clie
 
 void ServerGameController::addInput(const RakNet::RakNetGUID& _id, SectorTick _tick, const InputState& _clientInput)
 {
-	//TODO server specific
 	mSectorController->addInput(_id, _tick, _clientInput);
 }
 

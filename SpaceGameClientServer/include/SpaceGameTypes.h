@@ -3,7 +3,7 @@
 
 typedef long long int SectorTick;
 
-const unsigned int MAX_SECTOR_TICK_REWIND_AMOUNT = 30;
+const unsigned int MAX_SECTOR_TICK_REWIND_AMOUNT = 100;
 
 typedef long long int UniqueId;
 

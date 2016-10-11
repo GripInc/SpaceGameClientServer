@@ -57,85 +57,43 @@ void ClientSector::instantiatePlayerShip(Ship& _playerShip, const Ogre::Quaterni
 	mPlayerShip->attachCamera(_cameraSceneNode);
 	mPlayerShip->forceWorldTransform(btTransform(convert(_orientation), convert(_position)));
 	mShips[_rakNetGUID] = mPlayerShip;
-
-	//Add neutral input
-	mPlayerInputHistory[mSectorTick] = InputState();
 }
 
 void ClientSector::updateSector(ShipInputHandler& _shipInputHandler)
 {
-	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateSector", "START: mSectorTick is : " + StringUtils::toStr(mSectorTick), false);
+	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateSector", "START at tick " + StringUtils::toStr(mSectorTick), false);
+
+	//Always add last input so when simulating we can use it (we don't want to use default input)
+	addPlayerInputInHistory(_shipInputHandler.mInputState);
 
 	if (_shipInputHandler.getHasInputChanged())
-		addPlayerInputInHistory(_shipInputHandler.mInputState);
+		_shipInputHandler.sendInputToServer(mSectorTick);
 
-	if (mDoNeedRewindData.mDoNeedRewindFlag)
+	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateSector", "mDoNeedRewindFlag is : " + std::string(mDoNeedRewindData.mDoNeedRewindFlag ? "true" : "false"), false);
+	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateSector", "mLastTickReceived is : " + StringUtils::toStr(mDoNeedRewindData.mLastTickReceived), false);
+	SectorTick currentTick = mDoNeedRewindData.mDoNeedRewindFlag ? mDoNeedRewindData.mLastTickReceived : mSectorTick;
+	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateSector", "currentTick is : " + StringUtils::toStr(currentTick), false);
+
+	//Set sector state to currentTick if last received is older than current tick
+	//if (currentTick < mSectorTick)
+	if(currentTick <= mSectorTick)
+		setSectorState(currentTick);
+
+	while (currentTick <= mSectorTick)
 	{
-		LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateSector", "Need rewind flag is up.", false);
-		reSimulateWorldFromTick(mDoNeedRewindData.mLastTickReceived);
-	}
-	else
-	{
-		LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateSector", "Need rewind flag is down.", false);
-		updateShipsSystems(mSectorUpdateRate, mSectorTick);
-		mDynamicWorld->stepSimulation(mSectorUpdateRate, 1, mSectorUpdateRate);
+		updateShipsSystems(mSectorUpdateRate, currentTick);
+		mDynamicWorld->stepSimulation(mSectorUpdateRate, 0, mSectorUpdateRate);
+
+		saveSectorState(currentTick);
+
+		currentTick++;
 	}
 
 	//Reset rewind flag
 	mDoNeedRewindData.mDoNeedRewindFlag = false;
 	mDoNeedRewindData.mLastTickReceived = 0;
 
-	saveSectorState();
-
-	//Send player inputs to server only in space mode and only if changed
-	_shipInputHandler.sendInputToServer(mSectorTick);
-
-	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateSector", "BEFORE Updating mSectorTick : " + StringUtils::toStr(mSectorTick), false);
 	mSectorTick++;
-	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateSector", "AFTER Updating mSectorTick : " + StringUtils::toStr(mSectorTick), false);
-
-	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateSector", "END: mSectorTick is : " + StringUtils::toStr(mSectorTick), false);
-
-	/////////////////////////////////
-	//Old stuff
-
-	//Update physics
-	/*mTickAccumulator += _deltaTime;
-	while( mTickAccumulator > WORLD_SIMULATION_RATE )
-	{
-	//updateShipsSystems(WORLD_SIMULATION_RATE);
-
-	//TODO do it for every ship
-	updateShipSystems(WORLD_SIMULATION_RATE, mPlayerShip);
-
-	mDynamicWorld->stepSimulation(WORLD_SIMULATION_RATE, 10);
-
-	saveSectorState();
-
-	//Send player inputs to server only in space mode and only if changed
-	_shipInputHandler.sendInputToServer(mSectorTick);
-
-	mSectorTick++;
-	mTickAccumulator -= WORLD_SIMULATION_RATE;
-	}*/
-}
-
-void ClientSector::reSimulateWorldFromTick(SectorTick _tick)
-{
-	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "reSimulateWorldFromTick", "START at tick " + StringUtils::toStr(_tick), false);
-
-	//Set sector state to currentSectorTick
-	setSectorState(_tick);
-
-	while (_tick <= mSectorTick)
-	{
-		LoggerManager::getInstance().logI(LOG_CLASS_TAG, "reSimulateWorldFromTick", "ReSimulate tick " + StringUtils::toStr(_tick), false);
-
-		updateShipsSystems(mSectorUpdateRate, _tick);
-		mDynamicWorld->stepSimulation(mSectorUpdateRate, 1, mSectorUpdateRate);
-
-		_tick++;
-	}
 }
 
 /*void Sector::updateShots(float _deltaTime)
@@ -197,22 +155,20 @@ void ClientSector::updateShipsSystems(float _deltaTime, SectorTick _sectorTick)
 		}
 		else
 		{
-			RakNet::RakNetGUID clientId = (*shipIt).first;
-			std::map<RakNet::RakNetGUID, InputState>::iterator foundClientInput = mLastClientsInput.find(clientId);
-			if (foundClientInput != mLastClientsInput.end())
-			{
-				clientInput = (*foundClientInput).second;
-			}
-			else
-			{
-				LoggerManager::getInstance().logE(LOG_CLASS_TAG, "updateShipsSystems", "No input found for clientId : " + std::string(clientId.ToString()));
-				assert(false);
-			}
-		}
+			//TODO handle others clients input ? -> for now we use default input :(
 
-		//What was that for??
-		//if(!clientShip)
-		//	continue;
+			//RakNet::RakNetGUID clientId = (*shipIt).first;
+			//std::map<RakNet::RakNetGUID, InputState>::iterator foundClientInput = mLastClientsInput.find(clientId);
+			//if (foundClientInput != mLastClientsInput.end())
+			//{
+			//	clientInput = (*foundClientInput).second;
+			//}
+			//else
+			//{
+			//	LoggerManager::getInstance().logE(LOG_CLASS_TAG, "updateShipsSystems", "No input found for clientId : " + std::string(clientId.ToString()));
+			//	assert(false);
+			//}
+		}
 
 		updateShipSystems(clientInput, clientShip, _deltaTime);
 	}
@@ -229,53 +185,51 @@ void ClientSector::receivedSectorState(RakNet::BitStream& _data)
 	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "receivedSectorState", "mDoNeedRewindData.mLastTickReceived is : " + StringUtils::toStr(mDoNeedRewindData.mLastTickReceived), false);
 
 	//We just drop out of date sector dumps
-	if (mDoNeedRewindData.mLastTickReceived >= sectorTick)
-	{
-		LoggerManager::getInstance().logI(LOG_CLASS_TAG, "receivedSectorState", "Dropping state.", false);
-		return;
-	}
-	else
+	if (mDoNeedRewindData.mLastTickReceived < sectorTick)
 	{
 		mDoNeedRewindData.mLastTickReceived = sectorTick;
 		mDoNeedRewindData.mDoNeedRewindFlag = true;
+
+		//Each client last input
+		//mLastClientsInput.clear();
+		//_data.Read(mLastClientsInput);
+
+		//Each ship
+		size_t shipsSize;
+		_data.Read(shipsSize);
+
+		//We write directly in ship history their state for tick mLastTickReceived
+		RakNet::RakNetGUID rakNetId;
+		for (size_t i = 0; i < shipsSize; ++i)
+		{
+			//Read client unique id
+			_data.Read(rakNetId);
+
+			//Read ship unique id
+			UniqueId uniqueId;
+			_data.Read(uniqueId);
+
+			//Read ship state
+			ShipState shipState;
+			shipState.deserialize(_data);
+
+			//Find the ship in sector
+			std::map<RakNet::RakNetGUID, Ship*>::const_iterator foundShip = mShips.find(rakNetId);
+			if (foundShip != mShips.end())
+			{
+				LoggerManager::getInstance().logI(LOG_CLASS_TAG, "receivedSectorState", "Setting ship state at tick : " + StringUtils::toStr(sectorTick), false);
+
+				Ship* ship = (*foundShip).second;
+				ship->overrideSavedState(sectorTick, shipState);
+			}
+			else
+			{
+				LoggerManager::getInstance().logW(LOG_CLASS_TAG, "receivedSectorState", "No ship found for raknet id : " + std::string(rakNetId.ToString()));
+			}
+		}
 	}
 
-	//Each client last input
-	//mLastClientsInput.clear();
-	//_data.Read(mLastClientsInput);
-
-	//Each ship
-	size_t shipsSize;
-	_data.Read(shipsSize);
-
-	//We write directly in ship history their state for tick mLastTickReceived
-	RakNet::RakNetGUID rakNetId;
-	for (size_t i = 0; i < shipsSize; ++i)
-	{
-		//Read client unique id
-		_data.Read(rakNetId);
-
-		//Read ship unique id
-		UniqueId uniqueId;
-		_data.Read(uniqueId);
-
-		//Read ship state
-		ShipState shipState;
-		shipState.deserialize(_data);
-
-		//Find the ship in sector
-		std::map<RakNet::RakNetGUID, Ship*>::const_iterator foundShip = mShips.find(rakNetId);
-		if (foundShip != mShips.end())
-		{
-			Ship* ship = (*foundShip).second;
-			ship->overrideSavedState(sectorTick, shipState);
-		}
-		else
-		{
-			LoggerManager::getInstance().logW(LOG_CLASS_TAG, "receivedSectorState", "No ship found for raknet id : " + std::string(rakNetId.ToString()));
-		}
-	}
-
+	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "receivedSectorState", "mDoNeedRewindData.mLastTickReceived is : " + StringUtils::toStr(mDoNeedRewindData.mLastTickReceived), false);
 	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "receivedSectorState", "END", false);
 }
 

@@ -65,9 +65,6 @@ protected:
 	//Updates
 	void updateShipsSystems(float _deltaTime, SectorTick _sectorTick);
 
-	//Performs a rewind on server objects and resimulate
-	void reSimulateWorldFromTick(SectorTick _tick);
-
 	//Last sector dump tick received from server with flag for rewind or not
 	struct DoNeedRewindData
 	{
