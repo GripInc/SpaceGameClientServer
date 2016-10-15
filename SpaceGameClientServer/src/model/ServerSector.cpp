@@ -53,69 +53,20 @@ void ServerSector::instantiateClientShip(const RakNet::RakNetGUID& _id, Ship& _s
 
 void ServerSector::updateSector()
 {
-	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateSector", "mSectorTick : " + StringUtils::toStr(mSectorTick) + "; mOldestUnsimulatedTick : " + StringUtils::toStr(mOldestUnsimulatedTick), false);
+	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateSector", "mSectorTick : " + StringUtils::toStr(mSectorTick), false);
 
-	//From input history: find the oldest tick where an input was received and not resimulated
-	//Resimulate from this tick to current tick -> oldest unsimulated tick should be reset to current tick
-	//If no input at all, just update all ships with neutral input
-	//We can't avoid resimulate already simulated entities because new input can imply collisions
-	//Save state so we can use it to rewind. States should be clean for too old states and for states that are going to be replaced by recomputation (from resimulateFromSectorTick to currentTick)
+	ClientsInputMap clientsInputMap;
+	//Input will be the last user input because when adding input we copy it until the current tick.
+	mClientsInput.getInput(mSectorTick, clientsInputMap);
 
-	//Each client will send input each tick -> reliable unordered. Unordered because server will broadcast its last state and client will rewind its simulation to this state, then simulate world with its input.
-	//
+	//Update all clients ship systems with clientsInputMap
+	updateShipsSystems(mSectorUpdateRate, clientsInputMap);
 
-	//It will resimulate from old unsimulated tick until current tick
-	
-	//Should handle 3 cases:
-	//oldest input unsimulated == 0 -> means no input at all -> simulate ships with neutral inputs
-	//oldest input unsimulated > 0 and < sectorTick -> means an input was inserted -> we want to resimulate from this tick
-	//oldest input unsimulated == sectorTick -> no new input was inserted -> input is based on input at sectorTick - 1 (created in update2) -> simulate tick
+	//Step physical simulation
+	mDynamicWorld->stepSimulation(mSectorUpdateRate, 0, mSectorUpdateRate);
 
-	//As far as update2 did added copy for mSectorTick, it is safe to get input for mSectorTick if no input was inserted.
-	//SectorTick resimulateFromSectorTick = mClientsInput.getOldestUnsimulatedInput2(mOldestUnsimulatedTick, clientsInputMap);
-	
-	if (mOldestUnsimulatedTick == 0)
-	{
-		//No input existing
-		LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateSector", "mOldestUnsimulatedTick == 0", false);
-
-		//Update all clients ship systems with clientsInputMap
-		updateShipsSystems(mSectorUpdateRate, ClientsInputMap());
-
-		//Step physical simulation
-		mDynamicWorld->stepSimulation(mSectorUpdateRate, 0, mSectorUpdateRate);
-
-		saveSectorState(mSectorTick);
-	}
-	//There are inputs to take care of
-	else if (mOldestUnsimulatedTick <= mSectorTick /* && mOldestUnsimulatedTick != 0 */)
-	{
-		LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateSector", "mOldestUnsimulatedTick <= mSectorTick", false);
-
-		if (mOldestUnsimulatedTick < mSectorTick)
-		{
-			LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateSector", "mOldestUnsimulatedTick < mSectorTick", false);
-			setSectorState(mOldestUnsimulatedTick - 1);
-		}
-
-		ClientsInputMap clientsInputMap;
-		do
-		{
-			mClientsInput.getInput(mOldestUnsimulatedTick, clientsInputMap);
-
-			//Update all clients ship systems with clientsInputMap
-			updateShipsSystems(mSectorUpdateRate, clientsInputMap);
-
-			//Step physical simulation
-			mDynamicWorld->stepSimulation(mSectorUpdateRate, 0, mSectorUpdateRate);
-
-			//On each tick simulation, save state AFTER simulation with input.
-			saveSectorState(mOldestUnsimulatedTick);
-
-			mOldestUnsimulatedTick++;
-		}
-		while (mOldestUnsimulatedTick <= mSectorTick);
-	}
+	//On each tick simulation, save state AFTER simulation with input.
+	//saveSectorState(mOldestUnsimulatedTick);
 
 	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateSector", "Broadcasting to clients mSectorTick is : " + StringUtils::toStr(mSectorTick), false);
 	
@@ -230,10 +181,7 @@ void ServerSector::serialize(RakNet::BitStream& _bitStream) const
 
 void ServerSector::addInput(const RakNet::RakNetGUID& _id, SectorTick _tick, const InputState& _clientInput)
 {
-	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "addInput", "mOldestUnsimulatedTick is : " + StringUtils::toStr(mOldestUnsimulatedTick) + "; _tick is : " + StringUtils::toStr(_tick), false);
+	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "addInput", "", false);
 
 	mClientsInput.addInput(_id, _tick, _clientInput);
-
-	if(_tick < mOldestUnsimulatedTick || mOldestUnsimulatedTick == 0)
-		mOldestUnsimulatedTick = _tick;
 }

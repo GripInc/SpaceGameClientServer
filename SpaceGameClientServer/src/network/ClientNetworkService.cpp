@@ -111,6 +111,5 @@ void ClientNetworkService::sendShipInput(SectorTick _gameTick, const InputState&
 
 	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "sendShipInput", "_gameTick is : " + StringUtils::toStr(_gameTick), false);
 
-	//mNetworkLayer->clientSend(stream, IMMEDIATE_PRIORITY, RELIABLE_ORDERED, LEVEL_1_CHANNEL, ID_GAME_MESSAGE_INPUT_STATE);
-	mNetworkLayer->clientSend(stream, IMMEDIATE_PRIORITY, RELIABLE, LEVEL_1_CHANNEL, ID_GAME_MESSAGE_INPUT_STATE);
+	mNetworkLayer->clientSend(stream, IMMEDIATE_PRIORITY, RELIABLE_ORDERED, LEVEL_1_CHANNEL, ID_GAME_MESSAGE_INPUT_STATE);
 }

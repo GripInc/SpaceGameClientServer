@@ -64,9 +64,6 @@ protected:
 
 	//Clients input history of the sector
 	InputHistoryManager mClientsInput;
-
-	//Oldest unsimulated tick
-	SectorTick mOldestUnsimulatedTick = 0;
 };
 
 #endif //_SERVER_SECTOR_H_

@@ -47,12 +47,13 @@ void InputHistoryManager::addInput(const RakNet::RakNetGUID& _id, SectorTick _ti
 
 void InputHistoryManager::getInput(SectorTick _tick, ClientsInputMap& _outClientsInputMap) const
 {
-	_outClientsInputMap = mClientsInputByTick.at(_tick);
+	if(!mClientsInputByTick.empty())
+		_outClientsInputMap = mClientsInputByTick.at(_tick);
 }
 
 void InputHistoryManager::update(SectorTick _sectorTick)
 {
-	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "update2", "", false);
+	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "update", "", false);
 
 	mCurrentSectorTick = _sectorTick;
 
