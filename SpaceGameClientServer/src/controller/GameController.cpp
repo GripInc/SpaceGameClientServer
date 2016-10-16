@@ -18,7 +18,10 @@ namespace
 }
 
 const float GameController::sDebugPanelRefreshRate = 0.1f;
-const float GameController::GAME_UPDATE_RATE = 1.f / 20.f;
+const unsigned int GameController::GAME_UPDATE_PER_SECONDS = 20U;
+const unsigned int GameController::GAME_BUFFER_LENGTH_IN_HERTZ = 10U; // 1/10th second
+const float GameController::GAME_UPDATE_RATE = 1.f / (float)GAME_UPDATE_PER_SECONDS;
+//const unsigned int GameController::GAME_BUFFER_LENGTH_IN_FRAME = GAME_UPDATE_PER_SECONDS / GAME_BUFFER_LENGTH_IN_HERTZ;
 
 /** Init */
 void GameController::init(const std::string& _gameSettingsFilePath, Ogre::Root* _root, Ogre::RenderWindow* _renderWindow, Ogre::SceneManager* _sceneManager, NetworkLayer& _networkLayer)
