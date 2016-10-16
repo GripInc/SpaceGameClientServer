@@ -13,9 +13,9 @@ const LoggerManager& LoggerManager::getInstance()
 	return *mInstance;
 }
 
-void LoggerManager::log(const std::string& _string, bool _writeOnStandardOutput) const
+void LoggerManager::log(const std::string& _string, bool _writeOnStandardOutput, bool _addNewLine) const
 {
-	std::string toLog = _string;
+	std::string toLog = _addNewLine ? "\n" : "" + _string;
 	toLog += "\n";
 #ifdef _DEBUG
 	OutputDebugString(toLog.c_str());
@@ -25,17 +25,17 @@ void LoggerManager::log(const std::string& _string, bool _writeOnStandardOutput)
 		std::cout << toLog << std::endl;
 }
 
-void LoggerManager::logE(const std::string& _logClass, const std::string& _logFunction, const std::string& _log) const
+void LoggerManager::logE(const std::string& _logClass, const std::string& _logFunction, const std::string& _log, bool _addNewLine /* = false */) const
 {
-	log("ERROR IN : " + _logClass + "::" + _logFunction + (_log.empty() ? "" : (" : " + _log)), true);
+	log("ERROR IN : " + _logClass + "::" + _logFunction + (_log.empty() ? "" : (" : " + _log)), true, _addNewLine);
 }
 
-void LoggerManager::logW(const std::string& _logClass, const std::string& _logFunction, const std::string& _log) const
+void LoggerManager::logW(const std::string& _logClass, const std::string& _logFunction, const std::string& _log, bool _addNewLine /* = false */) const
 {
-	log("WARNING IN : " + _logClass + "::" + _logFunction + (_log.empty() ? "" : (" : " + _log)), true);
+	log("WARNING IN : " + _logClass + "::" + _logFunction + (_log.empty() ? "" : (" : " + _log)), true, _addNewLine);
 }
 
-void LoggerManager::logI(const std::string& _logClass, const std::string& _logFunction, const std::string& _log, bool _forceStdOut) const
+void LoggerManager::logI(const std::string& _logClass, const std::string& _logFunction, const std::string& _log, bool _forceStdOut, bool _addNewLine /* = false */) const
 {
-	log(_logClass + "::" + _logFunction + (_log.empty() ? "" : (" : " + _log)), _forceStdOut | false);
+	log(_logClass + "::" + _logFunction + (_log.empty() ? "" : (" : " + _log)), _forceStdOut | false, _addNewLine);
 }
