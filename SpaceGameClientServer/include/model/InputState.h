@@ -26,9 +26,6 @@ public:
 		result += "\nmZKeyPressed:";
 		result += std::string(mZKeyPressed ? "true" : "false");
 
-		result += "\nmCertified:";
-		result += std::string(mCertified ? "true" : "false");
-
 		return result;
 	}
 
@@ -50,10 +47,6 @@ public:
 	bool mRightKeyPressed = false;
 
 	bool mFirePressed = false;
-
-	//Used to know if the input state is a copy generated because of missing inputs, or an actually sent by client input.
-	//Shouldn't be sent via network
-	bool mCertified = false;
 };
 
 #endif //_INPUT_STATE_H_

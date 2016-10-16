@@ -55,18 +55,13 @@ void ServerSector::updateSector()
 {
 	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateSector", "mSectorTick : " + StringUtils::toStr(mSectorTick), false);
 
-	ClientsInputMap clientsInputMap;
-	//Input will be the last user input because when adding input we copy it until the current tick.
-	mClientsInput.getInput(mSectorTick, clientsInputMap);
+	const ClientsInputMap& clientsInputMap = mClientsInput.getLastInputReceivedByClient();
 
 	//Update all clients ship systems with clientsInputMap
 	updateShipsSystems(mSectorUpdateRate, clientsInputMap);
 
 	//Step physical simulation
 	mDynamicWorld->stepSimulation(mSectorUpdateRate, 0, mSectorUpdateRate);
-
-	//On each tick simulation, save state AFTER simulation with input.
-	//saveSectorState(mOldestUnsimulatedTick);
 
 	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateSector", "Broadcasting to clients mSectorTick is : " + StringUtils::toStr(mSectorTick), false);
 	
@@ -79,9 +74,6 @@ void ServerSector::updateSector()
 	mSectorTick++;
 
 	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateSector", "Updating sector tick : " + StringUtils::toStr(mSectorTick), false);
-
-	//Here, add copy of input from mSectorTick - 1 and update input history mCurrentSectorTick
-	mClientsInput.update(mSectorTick);
 }
 
 /*void Sector::updateShots(float _deltaTime)

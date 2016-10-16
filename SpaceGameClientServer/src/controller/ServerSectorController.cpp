@@ -22,11 +22,6 @@ void ServerSectorController::initSector(const std::string& _sectorName, Ogre::Sc
 	mCurrentSector = new ServerSector(_sectorName, _sceneManager, _sectorUpdateRate);
 }
 
-void ServerSectorController::setMaxSectorTickRewindAmount(unsigned int _maxRewindAmount)
-{
-	mCurrentSector->setMaxSectorTickRewindAmount(_maxRewindAmount); 
-}
-
 void ServerSectorController::instanciateSectorObjects()
 {
 	mCurrentSector->instantiateObjects();

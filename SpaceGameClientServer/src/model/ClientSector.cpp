@@ -61,13 +61,12 @@ void ClientSector::instantiatePlayerShip(Ship& _playerShip, const Ogre::Quaterni
 
 void ClientSector::updateSector(ShipInputHandler& _shipInputHandler)
 {
-	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateSector", "START at tick " + StringUtils::toStr(mSectorTick), false);
+	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateSector", "START at tick " + StringUtils::toStr(mSectorTick), false, true);
 
 	//Always add last input so when simulating we can use it (we don't want to use default input)
 	addPlayerInputInHistory(_shipInputHandler.mInputState);
 
-	if (_shipInputHandler.getHasInputChanged())
-		_shipInputHandler.sendInputToServer(mSectorTick);
+	_shipInputHandler.sendInputToServer(mSectorTick);
 
 	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateSector", "mDoNeedRewindFlag is : " + std::string(mDoNeedRewindData.mDoNeedRewindFlag ? "true" : "false"), false);
 	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateSector", "mLastTickReceived is : " + StringUtils::toStr(mDoNeedRewindData.mLastTickReceived), false);
@@ -254,15 +253,4 @@ void ClientSector::getPlayerInputAtTick(SectorTick _tick, InputState& _inputStat
 	std::map<SectorTick, InputState>::const_iterator foundInput = mPlayerInputHistory.find(_tick);
 	if (foundInput != mPlayerInputHistory.end())
 		_inputState = (*foundInput).second;
-	else
-	{
-		std::map<SectorTick, InputState>::const_reverse_iterator clientsInputByTickIt(foundInput); //Converting it to reverse_it point to the next element in reverse view it = 5 -> reverseIt = 4
-		if (clientsInputByTickIt != mPlayerInputHistory.rend())
-			_inputState = (*clientsInputByTickIt).second;
-		else
-		{
-			LoggerManager::getInstance().logE(LOG_CLASS_TAG, "getPlayerInputAtTick", "No valid player input found from _tick " + StringUtils::toStr(_tick));
-			assert(false);
-		}
-	}
 }
