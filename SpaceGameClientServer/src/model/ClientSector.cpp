@@ -148,25 +148,15 @@ void ClientSector::updateShipsSystems(float _deltaTime, SectorTick _sectorTick)
 		Ship* clientShip = (*shipIt).second;
 		InputState& clientInput = InputState();
 
-		if (clientShip == mPlayerShip)
+		RakNet::RakNetGUID clientId = (*shipIt).first;
+		std::map<RakNet::RakNetGUID, InputState>::iterator foundClientInput = mLastClientsInput.find(clientId);
+		if (foundClientInput != mLastClientsInput.end())
 		{
-			getPlayerInputAtTick(_sectorTick, clientInput);
+			clientInput = (*foundClientInput).second;
 		}
 		else
 		{
-			//TODO handle others clients input ? -> for now we use default input :(
-
-			//RakNet::RakNetGUID clientId = (*shipIt).first;
-			//std::map<RakNet::RakNetGUID, InputState>::iterator foundClientInput = mLastClientsInput.find(clientId);
-			//if (foundClientInput != mLastClientsInput.end())
-			//{
-			//	clientInput = (*foundClientInput).second;
-			//}
-			//else
-			//{
-			//	LoggerManager::getInstance().logE(LOG_CLASS_TAG, "updateShipsSystems", "No input found for clientId : " + std::string(clientId.ToString()));
-			//	assert(false);
-			//}
+			LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateShipsSystems", "No input found for clientId : " + std::string(clientId.ToString()), false);
 		}
 
 		updateShipSystems(clientInput, clientShip, _deltaTime);
