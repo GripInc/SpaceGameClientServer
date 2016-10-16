@@ -22,7 +22,7 @@ NetworkLayer::NetworkLayer()
 	//mPeer->ApplyNetworkSimulator(0.1, 10, 200);
 }
 
-void NetworkLayer::init()
+void NetworkLayer::init(unsigned short _serverPort, unsigned int _maxConnections)
 {
 #	ifdef _GAME_CLIENT
 	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "init", "Starting the client.", true);
@@ -31,16 +31,16 @@ void NetworkLayer::init()
 #	else
 	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "init", "Starting the server.", true);
 
-	RakNet::SocketDescriptor socketDescriptor(SERVER_PORT, 0); //TODO set real values
-	mPeer->Startup(MAX_CLIENTS, &socketDescriptor, 1); //TODO set real values
+	RakNet::SocketDescriptor socketDescriptor(_serverPort, 0); //TODO set real values
+	mPeer->Startup(_maxConnections, &socketDescriptor, 1); //TODO set real values
 	// Make server accept incoming connections from the clients
-	mPeer->SetMaximumIncomingConnections(MAX_CLIENTS);
+	mPeer->SetMaximumIncomingConnections(_maxConnections);
 #	endif
 }
 
-void NetworkLayer::connect(const char* _serverAddress)
+void NetworkLayer::connect(const char* _serverAddress, unsigned short _serverPort)
 {
-	RakNet::ConnectionAttemptResult connectionResult = mPeer->Connect(_serverAddress, SERVER_PORT, 0, 0); //TODO use choosed options
+	RakNet::ConnectionAttemptResult connectionResult = mPeer->Connect(_serverAddress, _serverPort, 0, 0); //TODO use choosed options
 
 	//TODO handle result
 	switch (connectionResult)

@@ -2,6 +2,8 @@
 #include "BitStream.h"
 #include "OgreOverlaySystem.h"
 
+#include "utils/StringUtils.h"
+
 ApplicationMaster::ApplicationMaster(void)
     : mRoot(0),
     mWindow(0),
@@ -105,12 +107,35 @@ void ApplicationMaster::startApplication()
 	if (!setup())
 		return;
 
+	//Read network config
+	std::map<std::string, std::string> networkConfig;
+	std::ifstream configFile("../SpaceGameRessources/network_conf.txt");
+
+	while (configFile)
+	{
+		std::string lineString;
+
+		if (!getline(configFile, lineString))
+			break;
+
+		std::vector<std::string> splitedString = StringUtils::split(lineString, ';');
+
+		if(splitedString.size() >= 2)
+			networkConfig[splitedString[0]] = splitedString[1];
+	}
+
 	//Init network
-	mNetworkLayer.init();
+	unsigned short serverPort;
+	StringUtils::fromString(serverPort, networkConfig["port"]);
+	unsigned int maxConnections;
+	StringUtils::fromString(maxConnections, networkConfig["max_clients"]);
+
+	mNetworkLayer.init(serverPort, maxConnections);
+
 #	ifdef _GAME_CLIENT
 	//Init gameController
 	mGameController.init(GAME_SETTINGS_FILE_PATH, mRoot, mWindow, sceneManager, mNetworkLayer);
-	mNetworkLayer.connect("127.0.0.1");
+	mNetworkLayer.connect(networkConfig["ip"].c_str(), serverPort);
 #	else
 	//Init gameController
 	mGameController.init(PLAYERS_DATA_FILE_PATH, GAME_SETTINGS_FILE_PATH, mRoot, mWindow, sceneManager, mNetworkLayer);

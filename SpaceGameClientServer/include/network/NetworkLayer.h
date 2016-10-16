@@ -6,8 +6,6 @@
 
 #include <list>
 
-#define SERVER_PORT 60000 //TODO useconfig file or prompt
-#define MAX_CLIENTS 10 //For server
 //TODO close connection, reinit connection etc
 
 class NetworkService;
@@ -30,10 +28,10 @@ public:
 		RakNet::RakPeerInterface::DestroyInstance(mPeer);
 	}
 
-	void init();
+	void init(unsigned short _serverPort, unsigned int _maxConnections);
 
 	//Connect the client
-	void connect(const char* _serverAddress);
+	void connect(const char* _serverAddress, unsigned short _serverPort);
 
 	//Link up a network service instance to this layer
 	void registerNetworkService(NetworkService* _networkService) { mNetworkService = _networkService; }
