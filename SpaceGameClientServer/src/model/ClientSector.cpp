@@ -190,8 +190,9 @@ void ClientSector::receivedSectorState(RakNet::BitStream& _data)
 		mDoNeedRewindData.mDoNeedRewindFlag = true;
 
 		//Each client last input
-		//mLastClientsInput.clear();
-		//_data.Read(mLastClientsInput);
+		mLastClientsInput.deserialize(_data);
+
+		LoggerManager::getInstance().logI(LOG_CLASS_TAG, "receivedSectorState", "Received at tick " + StringUtils::toStr(sectorTick) + ":\n" + mLastClientsInput.getDebugString(), false);
 
 		//Each ship
 		size_t shipsSize;

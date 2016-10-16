@@ -1,14 +1,10 @@
 #ifndef _INPUT_HISTORY_MANAGER_H_
 #define _INPUT_HISTORY_MANAGER_H_
 
-#include <map>
-#include <vector>
-
 #include "RakNetTypes.h"
 #include "SpaceGameTypes.h"
 #include "model/InputState.h"
-
-typedef std::map<RakNet::RakNetGUID, InputState> ClientsInputMap;
+#include "model/ClientsInputMap.h"
 
 class InputHistoryManager
 {

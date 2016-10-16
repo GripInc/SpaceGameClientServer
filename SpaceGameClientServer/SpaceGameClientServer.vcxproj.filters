@@ -780,6 +780,9 @@
     <ClInclude Include="include\utils\BulletUtils.h">
       <Filter>Header Files\utils</Filter>
     </ClInclude>
+    <ClInclude Include="include\model\ClientsInputMap.h">
+      <Filter>Header Files\model</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\ApplicationMaster.cpp">

@@ -1,10 +1,12 @@
 #ifndef _INPUT_STATE_H_
 #define _INPUT_STATE_H_
 
+#include <string>
+
 class InputState
 {
 public:
-	std::string getDebugString()
+	std::string getDebugString() const
 	{
 		std::string result;
 

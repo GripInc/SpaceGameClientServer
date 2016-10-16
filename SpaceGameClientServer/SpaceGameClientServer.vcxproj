@@ -370,6 +370,7 @@
     <ClInclude Include="include\manager\LoggerManager.h" />
     <ClInclude Include="include\manager\StateManager.h" />
     <ClInclude Include="include\model\ClientSector.h" />
+    <ClInclude Include="include\model\ClientsInputMap.h" />
     <ClInclude Include="include\model\deserialized\AccumulatorsSettings.h" />
     <ClInclude Include="include\model\deserialized\CollisionShapeSettings.h" />
     <ClInclude Include="include\model\deserialized\DirectionalsSettings.h" />

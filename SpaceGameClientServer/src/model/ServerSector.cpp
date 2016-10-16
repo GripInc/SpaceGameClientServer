@@ -55,10 +55,8 @@ void ServerSector::updateSector()
 {
 	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateSector", "mSectorTick : " + StringUtils::toStr(mSectorTick), false);
 
-	const ClientsInputMap& clientsInputMap = mClientsInput.getLastInputReceivedByClient();
-
 	//Update all clients ship systems with clientsInputMap
-	updateShipsSystems(mSectorUpdateRate, clientsInputMap);
+	updateShipsSystems(mSectorUpdateRate, mClientsInput.getLastInputReceivedByClient());
 
 	//Step physical simulation
 	mDynamicWorld->stepSimulation(mSectorUpdateRate, 0, mSectorUpdateRate);
@@ -154,9 +152,11 @@ void ServerSector::serialize(RakNet::BitStream& _bitStream) const
 	_bitStream.Write(mSectorTick);
 
 	//serialize last input for each client
-	ClientsInputMap lastClientsInputMap;
-	//mClientsInput.getLastInputForAllClients(mSectorTick, lastClientsInputMap);
-	//_bitStream.Write(lastClientsInputMap);
+	ClientsInputMap lastClientsInputMap = mClientsInput.getLastInputReceivedByClient();
+
+	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "serialize", "Serialized at tick "+ StringUtils::toStr(mSectorTick) +":\n" + lastClientsInputMap.getDebugString(), false);
+
+	lastClientsInputMap.serialize(_bitStream);
 
 	//Serialize ships
 	_bitStream.Write(mShips.size());

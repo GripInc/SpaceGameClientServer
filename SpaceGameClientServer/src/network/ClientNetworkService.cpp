@@ -1,11 +1,9 @@
 #include "network/ClientNetworkService.h"
 
 #include "controller/ClientGameController.h"
-//#include "model/InputState.h"
 
 #include "utils/StringUtils.h"
 
-//#include <iostream>
 #include "BitStream.h"
 
 #include "manager/LoggerManager.h"

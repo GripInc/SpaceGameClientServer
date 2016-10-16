@@ -9,6 +9,7 @@
 #include "model/Shot.h"
 #include "model/DynamicObject.h"
 #include "model/Ship.h"
+#include "model/ClientsInputMap.h"
 
 #include "btBulletDynamicsCommon.h"
 
@@ -73,7 +74,7 @@ protected:
 	} mDoNeedRewindData;
 
 	//Input handling
-	std::map<RakNet::RakNetGUID, InputState> mLastClientsInput;
+	ClientsInputMap mLastClientsInput;
 	std::map<SectorTick, InputState> mPlayerInputHistory;
 	void addPlayerInputInHistory(const InputState& _inputState);
 	void getPlayerInputAtTick(SectorTick _tick, InputState& _inputState);
