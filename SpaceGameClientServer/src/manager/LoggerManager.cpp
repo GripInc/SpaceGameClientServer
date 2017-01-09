@@ -1,5 +1,7 @@
 #include "manager/LoggerManager.h"
 
+#include "OgreLogManager.h"
+
 #include <Windows.h>
 #include <iostream>
 
@@ -20,6 +22,8 @@ void LoggerManager::log(const std::string& _string, bool _writeOnStandardOutput,
 #ifdef _DEBUG
 	OutputDebugString(toLog.c_str());
 #endif
+
+	Ogre::LogManager::getSingleton().logMessage(toLog);
 
 	if(_writeOnStandardOutput)
 		std::cout << toLog << std::endl;

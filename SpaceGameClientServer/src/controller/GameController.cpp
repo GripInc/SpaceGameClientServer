@@ -62,14 +62,14 @@ bool GameController::frameRenderingQueued(const Ogre::FrameEvent& evt)
 	{
 		LoggerManager::getInstance().logI(LOG_CLASS_TAG, "frameRenderingQueued", "Entering update loop.", false);
 
-		//Update sector
-		updateSector();
+		//Capture input and pass it to all registered controllers
+		mInputController->capture();
 
 		//Process network buffer. In server, add clients input in history
 		processNetworkBuffer();
 
-		//Capture input and pass it to all registered controllers
-		mInputController->capture();
+		//Update sector
+		updateSector();
 
 		mGameUpdateAccumulator -= GAME_UPDATE_RATE;
 	}
@@ -82,10 +82,10 @@ bool GameController::frameRenderingQueued(const Ogre::FrameEvent& evt)
 	updateDebugPanel(evt.timeSinceLastFrame);
 	
 	//DEBUG
-	for (int i = 0; i < mLaggyValue; i++)
-	{
-		mLaggyValue = mLaggyValue;
-	}
+	//for (int i = 0; i < mLaggyValue; i++)
+	//{
+	//	mLaggyValue = mLaggyValue;
+	//}
 
 	//Handle switching if needed (client only)
 	handleSwitching();
