@@ -4,6 +4,7 @@
 #include "network/NetworkService.h"
 
 #include <set>
+#include <map>
 
 #include "SpaceGameTypes.h"
 
@@ -33,7 +34,7 @@ public:
 	virtual void handlePacket(RakNet::Packet* _packet) override;
 
 	///Server specific. Broadcast a sector state to clients in the list.
-	void broadcastSector(const std::set<RakNet::RakNetGUID>& _clientIds, RakNet::BitStream& _serializedSector);
+	void broadcastSector(const std::set<RakNet::RakNetGUID>& _clientIds, RakNet::BitStream& _serializedSector, const std::map<RakNet::RakNetGUID, SectorTick>& _lastTickInputReceivedByClient);
 
 protected:
 	///Singleton

@@ -26,11 +26,11 @@ ShipInputHandler::~ShipInputHandler(void)
 
 void ShipInputHandler::sendInputToServer(SectorTick _tick)
 {
-	if(mInputChanged)
+	//if(mInputChanged)
 	{
 		LoggerManager::getInstance().logI("ShipInputHandler", "sendInputToServer", "Send input change to server. Tick is " + StringUtils::toStr(_tick), false);
 		ClientNetworkService::getInstance().sendShipInput(_tick, mInputState);
-		mInputChanged = false;
+		//mInputChanged = false;
 	}
 }
 

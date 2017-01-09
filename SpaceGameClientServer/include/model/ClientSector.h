@@ -65,20 +65,23 @@ protected:
 
 	//Updates
 	void updateShipsSystems(float _deltaTime, SectorTick _sectorTick);
-
-	//Last sector dump tick received from server with flag for rewind or not
-	struct DoNeedRewindData
-	{
-		SectorTick mLastTickReceived = 0;
-		bool mDoNeedRewindFlag = false;
-	} mDoNeedRewindData;
-
+	
 	//Input handling
 	ClientsInputMap mLastClientsInput;
 	std::map<SectorTick, InputState> mPlayerInputHistory;
 	void addPlayerInputInHistory(const InputState& _inputState);
 	void getPlayerInputAtTick(SectorTick _tick, InputState& _inputState);
 	unsigned int mMaxInputRewind = 0;
+
+	//Stored last received sector state
+	struct SectorState
+	{
+		SectorTick mSectorTick = 0;
+		ClientsInputMap mClientInputMap;
+		std::map<RakNet::RakNetGUID, ShipState> mShips;
+		SectorTick mLastAcknowledgedInput = 0;
+		bool mSimulated = true;
+	} mLastReceivedSectorState;
 };
 
 #endif //_CLIENT_SECTOR_H_

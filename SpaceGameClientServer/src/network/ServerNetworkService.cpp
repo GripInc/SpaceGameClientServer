@@ -90,13 +90,24 @@ void ServerNetworkService::handlePacket(RakNet::Packet* _packet)
 	}
 }
 
-void ServerNetworkService::broadcastSector(const std::set<RakNet::RakNetGUID>& _clientsIds, RakNet::BitStream& _serializedSector)
+void ServerNetworkService::broadcastSector(const std::set<RakNet::RakNetGUID>& _clientsIds, RakNet::BitStream& _serializedSector, const std::map<RakNet::RakNetGUID, SectorTick>& _lastTickInputReceivedByClient)
 {
 	//Make log string
 	std::string clientIdsList = "";
 	for (const RakNet::RakNetGUID id : _clientsIds)
 	{
 		clientIdsList += std::string(id.ToString()) + ";";
+
+		const std::map<RakNet::RakNetGUID, SectorTick>::const_iterator inputToACK = _lastTickInputReceivedByClient.find(id);
+		if (inputToACK != _lastTickInputReceivedByClient.end())
+		{
+			_serializedSector.Write((*inputToACK).second);
+		}
+		else
+		{
+			_serializedSector.Write((SectorTick)0);
+		}
+
 		mNetworkLayer->serverSend(id, _serializedSector, IMMEDIATE_PRIORITY, RELIABLE_ORDERED, LEVEL_1_CHANNEL, ID_GAME_MESSAGE_SECTOR_STATE);
 	}
 

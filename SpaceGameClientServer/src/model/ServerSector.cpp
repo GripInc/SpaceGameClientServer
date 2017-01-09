@@ -67,7 +67,7 @@ void ServerSector::updateSector()
 	//TODO add last input
 	RakNet::BitStream bitStream;
 	this->serialize(bitStream);
-	ServerNetworkService::getInstance().broadcastSector(mUsersIds, bitStream);
+	ServerNetworkService::getInstance().broadcastSector(mUsersIds, bitStream, mClientsInput.getLastTickInputReceivedByClient());
 
 	mSectorTick++;
 
