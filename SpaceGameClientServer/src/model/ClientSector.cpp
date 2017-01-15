@@ -70,39 +70,51 @@ void ClientSector::updateSector(ShipInputHandler& _shipInputHandler)
 	
 	if (!mLastReceivedSectorState.mSimulated)
 	{
+		LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateSector", "mLastReceivedSectorState.mSimulated == false", false, true);
+
 		mLastReceivedSectorState.mSimulated = true;
-		SectorTick resimulateFromTick = mLastReceivedSectorState.mLastAcknowledgedInput;
 
-		//Set ship states as received from server
-		for (std::map<RakNet::RakNetGUID, ShipState>::const_reference pair : mLastReceivedSectorState.mShips)
+		if (mLastReceivedSectorState.mLastAcknowledgedInput > 0)
 		{
-			//Find the ship in sector
-			std::map<RakNet::RakNetGUID, Ship*>::const_iterator foundShip = mShips.find(pair.first);
-			if (foundShip != mShips.end())
-			{
-				LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateSector", "Setting ship state at tick : " + StringUtils::toStr(resimulateFromTick), false);
+			SectorTick resimulateFromTick = mLastReceivedSectorState.mLastAcknowledgedInput;
 
-				Ship* ship = (*foundShip).second;
-				ship->overrideSavedState(resimulateFromTick, pair.second);
-				ship->setState(resimulateFromTick);
-			}
-			else
-			{
-				//TODO instanciate new ship
-			}
-		}
+			LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateSector", "resimulateFromTick is " + StringUtils::toStr(resimulateFromTick), false, true);
 
-		resimulateFromTick++;
-		while (resimulateFromTick <= mSectorTick)
-		{
-			updateShipsSystems(mSectorUpdateRate, resimulateFromTick);
-			mDynamicWorld->stepSimulation(mSectorUpdateRate, 0, mSectorUpdateRate);
+			//Set ship states as received from server
+			for (std::map<RakNet::RakNetGUID, ShipState>::const_reference pair : mLastReceivedSectorState.mShips)
+			{
+				//Find the ship in sector
+				std::map<RakNet::RakNetGUID, Ship*>::const_iterator foundShip = mShips.find(pair.first);
+				if (foundShip != mShips.end())
+				{
+					LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateSector", "Setting ship state at tick : " + StringUtils::toStr(resimulateFromTick) + " for ship id " + StringUtils::toStr(pair.first.ToString()), false);
+
+					Ship* ship = (*foundShip).second;
+					ship->overrideSavedState(resimulateFromTick, pair.second);
+					ship->setState(resimulateFromTick);
+				}
+				else
+				{
+					//TODO instanciate new ship
+				}
+			}
 
 			resimulateFromTick++;
+			while (resimulateFromTick <= mSectorTick)
+			{
+				LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateSector", "Resimulate tick " + StringUtils::toStr(resimulateFromTick), false);
+
+				updateShipsSystems(mSectorUpdateRate, resimulateFromTick);
+				mDynamicWorld->stepSimulation(mSectorUpdateRate, 0, mSectorUpdateRate);
+
+				resimulateFromTick++;
+			}
 		}
 	}
 	else
 	{
+		LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateSector", "mLastReceivedSectorState.mSimulated == true", false, true);
+
 		updateShipsSystems(mSectorUpdateRate, mSectorTick);
 		mDynamicWorld->stepSimulation(mSectorUpdateRate, 0, mSectorUpdateRate);
 	}
@@ -177,6 +189,8 @@ void ClientSector::receivedSectorState(RakNet::BitStream& _data)
 	//Read and deserialize state then stores it
 	if (mLastReceivedSectorState.mSectorTick < sectorTick)
 	{
+		LoggerManager::getInstance().logI(LOG_CLASS_TAG, "receivedSectorState", "State received at tick " + StringUtils::toStr(sectorTick), false);
+
 		//Each client last input
 		mLastReceivedSectorState.mClientInputMap.deserialize(_data);
 
@@ -203,10 +217,13 @@ void ClientSector::receivedSectorState(RakNet::BitStream& _data)
 
 		//Last ackonwledged input
 		_data.Read(mLastReceivedSectorState.mLastAcknowledgedInput);
+		LoggerManager::getInstance().logI(LOG_CLASS_TAG, "receivedSectorState", "mLastAcknowledgedInput is " + StringUtils::toStr(mLastReceivedSectorState.mLastAcknowledgedInput), false);
 
 		//Set last received state as not simulated
 		mLastReceivedSectorState.mSimulated = false;
 	}
+	else
+		LoggerManager::getInstance().logI(LOG_CLASS_TAG, "receivedSectorState", "Discard state at tick " + StringUtils::toStr(sectorTick), false);
 }
 
 void ClientSector::addPlayerInputInHistory(const InputState& _inputState)
