@@ -64,14 +64,11 @@ void ServerSector::updateSector()
 	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateSector", "Broadcasting to clients mSectorTick is : " + StringUtils::toStr(mSectorTick), false);
 	
 	//Sector state broadcasting
-	//TODO add last input
 	RakNet::BitStream bitStream;
 	this->serialize(bitStream);
 	ServerNetworkService::getInstance().broadcastSector(mUsersIds, bitStream, mClientsInput.getLastTickInputReceivedByClient());
 
 	mSectorTick++;
-
-	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateSector", "Updating sector tick : " + StringUtils::toStr(mSectorTick), false);
 }
 
 /*void Sector::updateShots(float _deltaTime)
@@ -118,7 +115,7 @@ shot->getSceneNode()->setPosition(convert(newPosition));
 
 void ServerSector::updateShipsSystems(float _deltaTime, const ClientsInputMap& _clientsInputMap)
 {
-	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateShipsSystems", "", false);
+	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateShipsSystems", "START", false);
 
 	for (std::map<RakNet::RakNetGUID, Ship*>::const_iterator shipIt = mShips.begin(), shipItEnd = mShips.end(); shipIt != shipItEnd; ++shipIt)
 	{
