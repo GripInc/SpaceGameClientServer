@@ -60,7 +60,8 @@ void ServerSector::updateSector()
 
 	//Step physical simulation
 	mDynamicWorld->stepSimulation(mSectorUpdateRate, 0, mSectorUpdateRate);
-
+	saveSectorState(mSectorTick);
+	
 	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateSector", "Broadcasting to clients mSectorTick is : " + StringUtils::toStr(mSectorTick), false);
 	
 	//Sector state broadcasting
@@ -175,4 +176,12 @@ void ServerSector::addInput(const RakNet::RakNetGUID& _id, const InputState& _cl
 	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "addInput", "", false);
 
 	mClientsInput.addInput(_id, _clientInput);
+}
+
+void ServerSector::updateShipsView()
+{
+	for (std::map<RakNet::RakNetGUID, Ship*>::iterator shipIt = mShips.begin(), shipItEnd = mShips.end(); shipIt != shipItEnd; ++shipIt)
+	{
+		(*shipIt).second->updateView(mSectorTick);
+	}
 }

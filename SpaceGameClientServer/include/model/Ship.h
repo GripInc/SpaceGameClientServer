@@ -69,9 +69,13 @@ public:
 	float mDebugValue = 0.f;
 	float mEngineRealForce = 0.f;
 
+	void serialize(RakNet::BitStream& _bitStream) const;
+
+	//States management
+	virtual void saveState(SectorTick _tick) override;
 	virtual void setState(const ShipState& _shipState);
 
-	void serialize(RakNet::BitStream& _bitStream) const;
+	void updateView(SectorTick _sectorTick);
 
 protected:
 	///Ship properties from XML
@@ -90,6 +94,7 @@ protected:
 	Directional mDirectional;
 
 private:
+	StateManager<ShipState> mStateManager;
 };
 
 #endif //_SHIP_H_

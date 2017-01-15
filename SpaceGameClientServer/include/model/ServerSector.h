@@ -59,6 +59,8 @@ protected:
 
 	//Update ships systems
 	void updateShipsSystems(float _deltaTime, const ClientsInputMap& _clientsInputMap);
+	
+	void updateShipsView();
 
 	//Clients input history of the sector
 	InputHistoryManager mClientsInput;

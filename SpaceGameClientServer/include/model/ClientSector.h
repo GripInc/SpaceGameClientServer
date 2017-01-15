@@ -66,7 +66,8 @@ protected:
 
 	//Updates
 	void updateShipsSystems(float _deltaTime, SectorTick _sectorTick);
-	
+	void updateShipsView(SectorTick _sectorTick);
+
 	//Input handling
 	ClientsInputMap mLastClientsInput;
 	std::list<InputState> mPlayerInputHistory;

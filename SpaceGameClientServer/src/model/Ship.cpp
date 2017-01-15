@@ -180,6 +180,33 @@ void Ship::updateHardPoints(float _deltaTime)
 	}
 }
 
+void Ship::saveState(SectorTick _tick)
+{
+	std::vector<std::pair<int, float> > hardpointsState;
+	int hardpointsSize = mHardPoints.size();
+	for (int i = 0; i < hardpointsSize; ++i)
+	{
+		if (mHardPoints[i].isUsed())
+		{
+			hardpointsState.push_back(std::make_pair(mHardPoints[i].getIndex(), mHardPoints[i].getWeapon().mElapsedTime));
+		}
+	}
+
+	mStateManager.saveState(_tick, ShipState(mRigidBody, mCurrentRollForce, mCurrentYawForce, mCurrentPitchForce, mEngine.mWantedThrust, mEngine.mRealThrust, hardpointsState));
+}
+
+void Ship::updateView(SectorTick _sectorTick)
+{
+	ShipState output;
+	mStateManager.getState(_sectorTick, output);
+
+	Ogre::Quaternion orientation = convert(output.mWorldTransform.getRotation());
+	Ogre::Vector3 position = convert(output.mWorldTransform.getOrigin());
+
+	mSceneNode->setPosition(position);
+	mSceneNode->setOrientation(orientation);
+}
+
 void Ship::setState(const ShipState& _shipState)
 {
 	//Rigid body

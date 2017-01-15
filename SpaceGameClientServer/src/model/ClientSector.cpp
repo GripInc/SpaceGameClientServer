@@ -111,6 +111,7 @@ void ClientSector::updateSector(ShipInputHandler& _shipInputHandler)
 
 				updateShipsSystems(mSectorUpdateRate, resimulateFromTick);
 				mDynamicWorld->stepSimulation(mSectorUpdateRate, 0, mSectorUpdateRate);
+				saveSectorState(resimulateFromTick);
 
 				resimulateFromTick++;
 			}
@@ -122,14 +123,25 @@ void ClientSector::updateSector(ShipInputHandler& _shipInputHandler)
 
 		updateShipsSystems(mSectorUpdateRate, mSectorTick);
 		mDynamicWorld->stepSimulation(mSectorUpdateRate, 0, mSectorUpdateRate);
+		saveSectorState(mSectorTick);
 	}
 
 	mSectorTick++;
 }
 
+void ClientSector::updateShipsView(SectorTick _sectorTick)
+{
+	for (std::map<RakNet::RakNetGUID, Ship*>::iterator shipIt = mShips.begin(), shipItEnd = mShips.end(); shipIt != shipItEnd; ++shipIt)
+	{
+		(*shipIt).second->updateView(_sectorTick);
+	}
+}
+
 void ClientSector::updateSectorView()
 {
-	updateShipsView();
+	//if(mSectorTick > 5)
+		//updateShipsView(mSectorTick - 5);
+	updateShipsView(mSectorTick);
 }
 
 /*void Sector::updateShots(float _deltaTime)

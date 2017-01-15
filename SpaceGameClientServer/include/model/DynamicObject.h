@@ -25,7 +25,10 @@ public:
 		return dynamicObjectSettings->mLocalInertia;
 	}
 
-	virtual void updateView();
+	virtual void updateView(SectorTick _sectorTick);
+
+	//States management
+	virtual void saveState(SectorTick _tick);
 
 protected:
 	virtual void instantiateCollisionObject();
@@ -33,6 +36,7 @@ protected:
 	UniqueId mUniqueId = 0;
 
 private:
+	StateManager<DynamicObjectState> mStateManager;
 };
 
 #endif //_DYNAMIC_OBJECT_H_

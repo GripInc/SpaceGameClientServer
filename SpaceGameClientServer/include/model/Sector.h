@@ -58,8 +58,6 @@ public:
 	//Update one ship systems according to an input and a delta time
 	void updateShipSystems(const InputState& _input, Ship* _ship, float _deltaTime);
 
-	void updateShipsView();
-
 	//Debug view utils
 	void switchDisplayDebug();
 	void switchDisplay();
