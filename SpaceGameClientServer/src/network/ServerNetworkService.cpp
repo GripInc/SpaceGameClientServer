@@ -3,6 +3,7 @@
 #include "controller/ServerGameController.h"
 #include "model/PlayersData.h"
 #include "model/InputState.h"
+#include "model/ClientsInputMap.h"
 
 #include "utils/StringUtils.h"
 
@@ -90,7 +91,7 @@ void ServerNetworkService::handlePacket(RakNet::Packet* _packet)
 	}
 }
 
-void ServerNetworkService::broadcastSector(const std::set<RakNet::RakNetGUID>& _clientsIds, RakNet::BitStream& _serializedSector, const std::map<RakNet::RakNetGUID, SectorTick>& _lastTickInputReceivedByClient)
+void ServerNetworkService::broadcastSector(const std::set<RakNet::RakNetGUID>& _clientsIds, RakNet::BitStream& _serializedSector, const ClientsInputMap& _lastTickInputReceivedFromClient)
 {
 	//Make log string
 	std::string clientIdsList = "";
@@ -98,12 +99,12 @@ void ServerNetworkService::broadcastSector(const std::set<RakNet::RakNetGUID>& _
 	{
 		clientIdsList += std::string(id.ToString()) + ";";
 
-		const std::map<RakNet::RakNetGUID, SectorTick>::const_iterator inputToACK = _lastTickInputReceivedByClient.find(id);
-		if (inputToACK != _lastTickInputReceivedByClient.end())
+		const ClientsInputMap::const_iterator inputToACK = _lastTickInputReceivedFromClient.find(id);
+		if (inputToACK != _lastTickInputReceivedFromClient.end())
 		{
-			_serializedSector.Write((*inputToACK).second);
+			_serializedSector.Write((*inputToACK).second.mTick);
 
-			LoggerManager::getInstance().logI(LOG_CLASS_TAG, "broadcastSector", "send input ACK to client : " + std::string(id.ToString()) + "; for tick " + StringUtils::toStr((*inputToACK).second), false);
+			LoggerManager::getInstance().logI(LOG_CLASS_TAG, "broadcastSector", "send input ACK to client : " + std::string(id.ToString()) + "; for tick " + StringUtils::toStr((*inputToACK).second.mTick), false);
 		}
 		else
 		{
@@ -137,12 +138,10 @@ void ServerNetworkService::sendPlayerLaunchPoint(const RakNet::RakNetGUID& _clie
 
 void ServerNetworkService::addClientInput(const RakNet::RakNetGUID& _clientId, RakNet::BitStream& _data)
 {
-	SectorTick tick;
 	InputState inputState;
 
-	_data.Read(tick);
 	_data.Read(inputState);
 
 	//Push client input
-	mServerGameController->addInput(_clientId, tick, inputState);
+	mServerGameController->addInput(_clientId, inputState);
 }

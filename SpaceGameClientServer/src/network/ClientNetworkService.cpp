@@ -101,13 +101,12 @@ void ClientNetworkService::handleLaunchData(RakNet::BitStream& _data) const
 	mClientGameController->prepareSwitchToInSpaceMode(initialPosition, initialOrientation, sectorName.C_String(), shipUniqueId, mNetworkLayer->getMyGUID(), sectorTick);
 }
 
-void ClientNetworkService::sendShipInput(SectorTick _gameTick, const InputState& _inputState) const
+void ClientNetworkService::sendShipInput(const InputState& _inputState) const
 {
 	RakNet::BitStream stream;
-	stream.Write(_gameTick);
 	stream.Write(_inputState);
 
-	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "sendShipInput", "_gameTick is : " + StringUtils::toStr(_gameTick), false);
+	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "sendShipInput", "Input tick is : " + StringUtils::toStr(_inputState.mTick), false);
 
 	mNetworkLayer->clientSend(stream, IMMEDIATE_PRIORITY, RELIABLE_ORDERED, LEVEL_1_CHANNEL, ID_GAME_MESSAGE_INPUT_STATE);
 }

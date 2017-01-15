@@ -35,7 +35,7 @@ public:
 	void updateSector();
 
 	//Add input for a client in a sector
-	void addInput(const RakNet::RakNetGUID& _id, SectorTick _tick, const InputState& _clientInput);
+	void addInput(const RakNet::RakNetGUID& _id, const InputState& _clientInput);
 
 	virtual void switchDisplayDebug() override;
 	virtual void switchDisplay() override;

@@ -56,7 +56,7 @@ void ServerSector::updateSector()
 	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateSector", "mSectorTick : " + StringUtils::toStr(mSectorTick), false);
 
 	//Update all clients ship systems with clientsInputMap
-	updateShipsSystems(mSectorUpdateRate, mClientsInput.getLastInputReceivedByClient());
+	updateShipsSystems(mSectorUpdateRate, mClientsInput.getLastInputReceivedFromClient());
 
 	//Step physical simulation
 	mDynamicWorld->stepSimulation(mSectorUpdateRate, 0, mSectorUpdateRate);
@@ -66,7 +66,7 @@ void ServerSector::updateSector()
 	//Sector state broadcasting
 	RakNet::BitStream bitStream;
 	this->serialize(bitStream);
-	ServerNetworkService::getInstance().broadcastSector(mUsersIds, bitStream, mClientsInput.getLastTickInputReceivedByClient());
+	ServerNetworkService::getInstance().broadcastSector(mUsersIds, bitStream, mClientsInput.getLastInputReceivedFromClient());
 
 	mSectorTick++;
 }
@@ -130,7 +130,7 @@ void ServerSector::updateShipsSystems(float _deltaTime, const ClientsInputMap& _
 		const ClientsInputMap::const_iterator foundClientInput = _clientsInputMap.find(clientId);
 		if (foundClientInput != _clientsInputMap.end())
 		{
-			LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateShipsSystems", "Input was found", false);
+			LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateShipsSystems", "Input was found with tick " + StringUtils::toStr((*foundClientInput).second.mTick), false);
 			clientInput = (*foundClientInput).second;
 		}
 		else
@@ -149,7 +149,7 @@ void ServerSector::serialize(RakNet::BitStream& _bitStream) const
 	_bitStream.Write(mSectorTick);
 
 	//serialize last input for each client
-	ClientsInputMap lastClientsInputMap = mClientsInput.getLastInputReceivedByClient();
+	ClientsInputMap lastClientsInputMap = mClientsInput.getLastInputReceivedFromClient();
 
 	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "serialize", "Serialized at tick "+ StringUtils::toStr(mSectorTick) +":\n" + lastClientsInputMap.getDebugString(), false);
 
@@ -168,9 +168,9 @@ void ServerSector::serialize(RakNet::BitStream& _bitStream) const
 	//TODO shots
 }
 
-void ServerSector::addInput(const RakNet::RakNetGUID& _id, SectorTick _tick, const InputState& _clientInput)
+void ServerSector::addInput(const RakNet::RakNetGUID& _id, const InputState& _clientInput)
 {
 	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "addInput", "", false);
 
-	mClientsInput.addInput(_id, _tick, _clientInput);
+	mClientsInput.addInput(_id, _clientInput);
 }

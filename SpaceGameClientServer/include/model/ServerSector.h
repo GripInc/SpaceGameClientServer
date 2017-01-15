@@ -49,7 +49,7 @@ public:
 	void serialize(RakNet::BitStream& _bitStream) const;
 
 	//Add input for a client
-	void addInput(const RakNet::RakNetGUID& _id, SectorTick _tick, const InputState& _clientInput);
+	void addInput(const RakNet::RakNetGUID& _id, const InputState& _clientInput);
 
 protected:
 	static UniqueId sUniqueId;

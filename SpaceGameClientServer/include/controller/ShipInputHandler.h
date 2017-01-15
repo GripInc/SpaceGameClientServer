@@ -20,11 +20,6 @@ public:
 
 	InputState mInputState;
 
-	//Discard send request if input didn't change
-	void sendInputToServer(SectorTick _tick);
-
-	bool getHasInputChanged() const { return mInputChanged; }
-
 protected:
 	bool mInputChanged;
 

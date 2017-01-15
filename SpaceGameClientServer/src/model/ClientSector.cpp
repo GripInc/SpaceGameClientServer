@@ -14,6 +14,8 @@
 #include "utils/OgreBulletConvert.h"
 #include "utils/BulletDebugDraw.h"
 
+#include "network/ClientNetworkService.h"
+
 #include "manager/LoggerManager.h"
 
 #include "OgreSceneNode.h"
@@ -63,10 +65,14 @@ void ClientSector::updateSector(ShipInputHandler& _shipInputHandler)
 {
 	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateSector", "START at tick " + StringUtils::toStr(mSectorTick), false, true);
 
+	//Set current input state to current sector tick
+	_shipInputHandler.mInputState.mTick = mSectorTick;
+
 	//Always add last input so when simulating we can use it (we don't want to use default input)
 	addPlayerInputInHistory(_shipInputHandler.mInputState);
-
-	_shipInputHandler.sendInputToServer(mSectorTick);
+	
+	LoggerManager::getInstance().logI("ClientSector", "updateSector", "Send input change to server. Tick is " + StringUtils::toStr(_shipInputHandler.mInputState.mTick), false);
+	ClientNetworkService::getInstance().sendShipInput(_shipInputHandler.mInputState);
 	
 	if (!mLastReceivedSectorState.mSimulated)
 	{

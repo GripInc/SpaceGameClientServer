@@ -223,7 +223,7 @@ void Sector::setSectorState(SectorTick _tick)
 
 void Sector::updateShipSystems(const InputState& _input, Ship* _ship, float _deltaTime)
 {
-	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateShipSystems", "", false);
+	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateShipSystems", "START with input with tick " + StringUtils::toStr(_input.mTick), false);
 
 	Engine& shipEngine = _ship->getEngine();
 

@@ -1,7 +1,8 @@
 #ifndef _INPUT_STATE_H_
 #define _INPUT_STATE_H_
 
-#include <string>
+#include "utils/StringUtils.h"
+#include "SpaceGameTypes.h"
 
 class InputState
 {
@@ -10,7 +11,10 @@ public:
 	{
 		std::string result;
 
-		result += "mAKeyPressed:";
+		result += "\nTick:";
+		result += StringUtils::toStr(mTick);
+
+		result += "\nmAKeyPressed:";
 		result += std::string(mAKeyPressed ? "true" : "false");
 
 		result += "\nmQKeyPressed:";
@@ -49,6 +53,8 @@ public:
 	bool mRightKeyPressed = false;
 
 	bool mFirePressed = false;
+
+	SectorTick mTick;
 };
 
 #endif //_INPUT_STATE_H_

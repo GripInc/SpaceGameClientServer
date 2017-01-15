@@ -37,13 +37,13 @@ void ServerSectorController::updateSector()
 	mCurrentSector->updateSector(); 
 }
 
-void ServerSectorController::addInput(const RakNet::RakNetGUID& _id, SectorTick _tick, const InputState& _clientInput)
+void ServerSectorController::addInput(const RakNet::RakNetGUID& _id, const InputState& _clientInput)
 {
 	//TODO retrieve the sector the client is in
 	//Add input in this sector input history
 
 	//For now:
-	mCurrentSector->addInput(_id, _tick, _clientInput);
+	mCurrentSector->addInput(_id, _clientInput);
 }
 
 void ServerSectorController::switchDisplayDebug()

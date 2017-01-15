@@ -22,6 +22,7 @@ namespace Ogre
 
 class ServerGameController;
 class PlayerData;
+class ClientsInputMap;
 
 class ServerNetworkService : public NetworkService
 {
@@ -34,7 +35,7 @@ public:
 	virtual void handlePacket(RakNet::Packet* _packet) override;
 
 	///Server specific. Broadcast a sector state to clients in the list.
-	void broadcastSector(const std::set<RakNet::RakNetGUID>& _clientIds, RakNet::BitStream& _serializedSector, const std::map<RakNet::RakNetGUID, SectorTick>& _lastTickInputReceivedByClient);
+	void broadcastSector(const std::set<RakNet::RakNetGUID>& _clientIds, RakNet::BitStream& _serializedSector, const ClientsInputMap& _lastTickInputReceivedFromClient);
 
 protected:
 	///Singleton

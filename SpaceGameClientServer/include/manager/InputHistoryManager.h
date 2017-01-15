@@ -10,15 +10,12 @@ class InputHistoryManager
 {
 public:
 	//Add one tick input
-	void addInput(const RakNet::RakNetGUID& _id, SectorTick _tick, const InputState& _newClientInput);
+	void addInput(const RakNet::RakNetGUID& _id, const InputState& _newClientInput);
 
-	const ClientsInputMap& getLastInputReceivedByClient() const { return mLastInputReceivedByClient; }
-	const std::map<RakNet::RakNetGUID, SectorTick>& getLastTickInputReceivedByClient() const { return mLastTickInputReceivedByClient; }
+	const ClientsInputMap& getLastInputReceivedFromClient() const { return mLastInputReceivedFromClient; }
 
 protected:
-	std::map<RakNet::RakNetGUID, SectorTick> mLastTickInputReceivedByClient;
-
-	ClientsInputMap mLastInputReceivedByClient;
+	ClientsInputMap mLastInputReceivedFromClient;
 };
 
 #endif //_INPUT_HISTORY_MANAGER_H_

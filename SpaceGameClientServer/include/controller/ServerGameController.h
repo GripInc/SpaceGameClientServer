@@ -28,7 +28,7 @@ public:
 	void instantiateClientShip(const RakNet::RakNetGUID& _clientId, std::string& _outSector, Ogre::Vector3& _outPosition, Ogre::Quaternion& _outOrientation, UniqueId& _shipUniqueId, SectorTick& _sectorTick);
 
 	//Add input for a client in a sector
-	void addInput(const RakNet::RakNetGUID& _id, SectorTick _tick, const InputState& _clientInput);
+	void addInput(const RakNet::RakNetGUID& _id, const InputState& _clientInput);
 
 protected:
 	///The sector controller
