@@ -17,5 +17,9 @@ void InputHistoryManager::addInput(const RakNet::RakNetGUID& _id, SectorTick _ti
 	{
 		mLastInputReceivedByClient[_id] = _newClientInput;
 		mLastTickInputReceivedByClient[_id] = _tick;
+
+		LoggerManager::getInstance().logI(LOG_CLASS_TAG, "addInput", "Add input at tick " + StringUtils::toStr(_tick), false);
 	}
+	else
+		LoggerManager::getInstance().logI(LOG_CLASS_TAG, "addInput", "Discard input at tick " + StringUtils::toStr(_tick), false);
 }

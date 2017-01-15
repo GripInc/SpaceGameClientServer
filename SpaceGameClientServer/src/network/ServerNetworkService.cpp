@@ -102,6 +102,8 @@ void ServerNetworkService::broadcastSector(const std::set<RakNet::RakNetGUID>& _
 		if (inputToACK != _lastTickInputReceivedByClient.end())
 		{
 			_serializedSector.Write((*inputToACK).second);
+
+			LoggerManager::getInstance().logI(LOG_CLASS_TAG, "broadcastSector", "send input ACK to client : " + std::string(id.ToString()) + "; for tick " + StringUtils::toStr((*inputToACK).second), false);
 		}
 		else
 		{
