@@ -78,6 +78,8 @@ bool GameController::frameRenderingQueued(const Ogre::FrameEvent& evt)
 	if (loopDurationTime > GAME_UPDATE_RATE * 1000)
 		LoggerManager::getInstance().logW(LOG_CLASS_TAG, "frameRenderingQueued", "loopDurationTime was " + StringUtils::toStr(loopDurationTime) + " : Simulation is getting late!");
 
+	updateSectorView();
+
 	//Debug panel
 	updateDebugPanel(evt.timeSinceLastFrame);
 	

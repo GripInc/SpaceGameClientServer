@@ -89,6 +89,7 @@ protected:
 	//Specialized functions (client or server) used in frameRenderingQueued
 	virtual void processNetworkBuffer() override;
 	virtual void updateSector() override;
+	virtual void updateSectorView() override;
 	virtual void updateDebugPanel(Ogre::Real _timeSinceLastFrame) override;
 	virtual void handleSwitching() override;
 

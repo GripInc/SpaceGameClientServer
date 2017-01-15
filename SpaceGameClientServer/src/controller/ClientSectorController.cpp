@@ -41,7 +41,12 @@ void ClientSectorController::instantiatePlayerShip(Ship& _playerShip, const Ogre
 
 void ClientSectorController::updateSector(ShipInputHandler& _shipInputHandler)
 {
-	mCurrentSector->updateSector(_shipInputHandler); 
+	mCurrentSector->updateSector(_shipInputHandler);
+}
+
+void ClientSectorController::updateSectorView()
+{
+	mCurrentSector->updateSectorView();
 }
 
 void ClientSectorController::receivedSectorState(RakNet::BitStream& _data) const

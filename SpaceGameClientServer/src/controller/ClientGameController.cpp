@@ -159,6 +159,15 @@ void ClientGameController::updateSector()
 	}
 }
 
+void ClientGameController::updateSectorView()
+{
+	if (mSectorController)
+	{
+		//Sector update for next sector tick
+		mSectorController->updateSectorView();
+	}
+}
+
 void ClientGameController::updateDebugPanel(Ogre::Real _timeSinceLastFrame)
 {
 	if (mSectorController)

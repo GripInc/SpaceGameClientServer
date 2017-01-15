@@ -46,6 +46,7 @@ public:
 
 	//Update function
 	void updateSector(ShipInputHandler& _shipInputHandler);
+	void updateSectorView();
 
 	//For debug only
 	const Ship* getPlayerShip() const { return mPlayerShip; }

@@ -124,9 +124,12 @@ void ClientSector::updateSector(ShipInputHandler& _shipInputHandler)
 		mDynamicWorld->stepSimulation(mSectorUpdateRate, 0, mSectorUpdateRate);
 	}
 
-	updateShipsView();
-
 	mSectorTick++;
+}
+
+void ClientSector::updateSectorView()
+{
+	updateShipsView();
 }
 
 /*void Sector::updateShots(float _deltaTime)
