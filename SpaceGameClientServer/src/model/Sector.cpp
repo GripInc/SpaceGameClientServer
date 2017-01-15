@@ -331,3 +331,11 @@ void Sector::updateShipSystems(const InputState& _input, Ship* _ship, float _del
 
 	_ship->updateForces();
 }
+
+void Sector::updateShipsView()
+{
+	for (std::map<RakNet::RakNetGUID, Ship*>::iterator shipIt = mShips.begin(), shipItEnd = mShips.end(); shipIt != shipItEnd; ++shipIt)
+	{
+		(*shipIt).second->updateView();
+	}
+}

@@ -25,6 +25,8 @@ public:
 		return dynamicObjectSettings->mLocalInertia;
 	}
 
+	virtual void updateView();
+
 protected:
 	virtual void instantiateCollisionObject();
 

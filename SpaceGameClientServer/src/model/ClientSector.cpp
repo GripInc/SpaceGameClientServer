@@ -124,6 +124,8 @@ void ClientSector::updateSector(ShipInputHandler& _shipInputHandler)
 		mDynamicWorld->stepSimulation(mSectorUpdateRate, 0, mSectorUpdateRate);
 	}
 
+	updateShipsView();
+
 	mSectorTick++;
 }
 
@@ -175,9 +177,7 @@ void ClientSector::updateShipsSystems(float _deltaTime, SectorTick _sectorTick)
 
 	const InputState* inputState = getInputAtTick(_sectorTick);
 	if (inputState != NULL)
-	{
 		updateShipSystems(*inputState, mPlayerShip, _deltaTime);
-	}
 }
 
 void ClientSector::receivedSectorState(RakNet::BitStream& _data)

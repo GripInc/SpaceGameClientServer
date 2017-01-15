@@ -68,6 +68,8 @@ void ServerSector::updateSector()
 	this->serialize(bitStream);
 	ServerNetworkService::getInstance().broadcastSector(mUsersIds, bitStream, mClientsInput.getLastInputReceivedFromClient());
 
+	updateShipsView();
+
 	mSectorTick++;
 }
 

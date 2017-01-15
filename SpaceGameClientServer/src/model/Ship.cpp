@@ -129,8 +129,7 @@ void Ship::removeWeapon(int _index)
 
 void Ship::updateForces()
 {
-	btTransform shipTransform;
-	mMyMotionState->getWorldTransform(shipTransform);
+	const btTransform& shipTransform = mRigidBody->getWorldTransform();
 	
 	//Compute thrust force
 	float currentSpeed = mRigidBody->getLinearVelocity().length();

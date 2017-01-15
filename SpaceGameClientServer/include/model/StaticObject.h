@@ -45,10 +45,10 @@ protected:
 	btDiscreteDynamicsWorld* mDynamicWorld = nullptr;
 	btCompoundShape* mCompoundShape = nullptr;
 	btRigidBody* mRigidBody = nullptr;
-	MyMotionState* mMyMotionState = nullptr;
+
 	btAlignedObjectArray<btCollisionShape*> mCollisionShapes;
 
-	btRigidBody* createRigidBody(const btTransform& _startTransform, btCollisionShape* _shape, MyMotionState* _myMotionState, float _mass, const btVector3& _overrideInertia = btVector3(0.f, 0.f, 0.f));
+	btRigidBody* createRigidBody(const btTransform& _startTransform, btCollisionShape* _shape, float _mass, const btVector3& _overrideInertia = btVector3(0.f, 0.f, 0.f));
 
 	btAlignedObjectArray<ObjectPart> mObjectParts;
 };

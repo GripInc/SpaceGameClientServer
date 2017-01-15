@@ -3,6 +3,8 @@
 #include "btBulletCollisionCommon.h"
 #include "btBulletDynamicsCommon.h"
 
+#include "OgreSceneNode.h"
+
 #include "utils/OgreBulletConvert.h"
 
 void DynamicObject::instantiateCollisionObject()
@@ -12,17 +14,30 @@ void DynamicObject::instantiateCollisionObject()
 		const DynamicObjectSettings* dynamicObjectSettings = static_cast<const DynamicObjectSettings*>(mObjectSettings);
 
 		btTransform startTransform = btTransform(convert(dynamicObjectSettings->mInitialOrientation), convert(dynamicObjectSettings->mInitialPosition));
-		mMyMotionState = new MyMotionState(mSceneNode, startTransform);
-		mRigidBody = createRigidBody(startTransform, mCompoundShape, mMyMotionState, dynamicObjectSettings->mMass, getInertia());
+		
+		mRigidBody = createRigidBody(startTransform, mCompoundShape, dynamicObjectSettings->mMass, getInertia());
 		mRigidBody->setRestitution(DEFAULT_RESTITUTION_VALUE);
 		mRigidBody->setActivationState(DISABLE_DEACTIVATION);
 		mRigidBody->setDamping(dynamicObjectSettings->mLinearDamping, dynamicObjectSettings->mAngularDamping);
 		mRigidBody->setCollisionFlags(mRigidBody->getCollisionFlags() | btCollisionObject::CF_CUSTOM_MATERIAL_CALLBACK); //CF_CUSTOM_MATERIAL_CALLBACK allows the trigger of MyContactCallback on contact added
 		mDynamicWorld->addRigidBody(mRigidBody);
+
+		forceWorldTransform(startTransform);
 	}
 }
 
 void DynamicObject::destroy()
 {
 	//StaticObject::destroy();
+}
+
+void DynamicObject::updateView()
+{
+	const btTransform& transform = mRigidBody->getWorldTransform();
+
+	Ogre::Quaternion orientation = convert(transform.getRotation());
+	Ogre::Vector3 position = convert(transform.getOrigin());
+
+	mSceneNode->setPosition(position);
+	mSceneNode->setOrientation(orientation);
 }
