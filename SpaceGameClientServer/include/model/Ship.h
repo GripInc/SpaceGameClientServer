@@ -69,16 +69,7 @@ public:
 	float mDebugValue = 0.f;
 	float mEngineRealForce = 0.f;
 
-	//States management
-	virtual void saveState(SectorTick _tick);
-	//When set a state, all oldest states are discarded
-	virtual void setState(SectorTick _tick);
-	//Override a state for a futur rewind to this state
-	virtual void overrideSavedState(SectorTick _tick, const ShipState& _shipState);
-
-	//Return true if the check passed without need to fix
-	//False if a fix was needed and done
-	//virtual bool checkAndFixState(const ShipState& _state);
+	virtual void setState(const ShipState& _shipState);
 
 	void serialize(RakNet::BitStream& _bitStream) const;
 
@@ -99,7 +90,6 @@ protected:
 	Directional mDirectional;
 
 private:
-	StateManager<ShipState> mStateManager;
 };
 
 #endif //_SHIP_H_

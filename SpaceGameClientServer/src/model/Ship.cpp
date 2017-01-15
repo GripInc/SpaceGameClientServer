@@ -181,50 +181,25 @@ void Ship::updateHardPoints(float _deltaTime)
 	}
 }
 
-void Ship::saveState(SectorTick _tick)
+void Ship::setState(const ShipState& _shipState)
 {
-	std::vector<std::pair<int, float> > hardpointsState;
-	int hardpointsSize = mHardPoints.size();
-	for(int i = 0; i < hardpointsSize; ++i)
-	{
-		if(mHardPoints[i].isUsed())
-		{
-			hardpointsState.push_back(std::make_pair(mHardPoints[i].getIndex(), mHardPoints[i].getWeapon().mElapsedTime));
-		}
-	}
-
-	mStateManager.saveState(_tick, ShipState(mRigidBody, mCurrentRollForce, mCurrentYawForce, mCurrentPitchForce, mEngine.mWantedThrust, mEngine.mRealThrust, hardpointsState));
-}
-
-void Ship::overrideSavedState(SectorTick _tick, const ShipState& _shipState)
-{
-	mStateManager.saveState(_tick, _shipState);
-}
-
-void Ship::setState(SectorTick _tick)
-{
-	ShipState shipState;
-
-	if(!mStateManager.getState(_tick, shipState))
-		return;
-
 	//Rigid body
-	mRigidBody->setWorldTransform(shipState.mWorldTransform);
-	mRigidBody->setLinearVelocity(shipState.mLinearVelocity);
-	mRigidBody->setAngularVelocity(shipState.mAngularVelocity);
-	mRigidBody->applyCentralForce(shipState.mTotalForce);
-	mRigidBody->applyTorque(shipState.mTotalTorque);
-
+	mRigidBody->setWorldTransform(_shipState.mWorldTransform);
+	mRigidBody->setLinearVelocity(_shipState.mLinearVelocity);
+	mRigidBody->setAngularVelocity(_shipState.mAngularVelocity);
+	mRigidBody->applyCentralForce(_shipState.mTotalForce);
+	mRigidBody->applyTorque(_shipState.mTotalTorque);
+	
 	//Systems
-	mCurrentRollForce = shipState.mCurrentRollForce;
-	mCurrentYawForce = shipState.mCurrentYawForce;
-	mCurrentPitchForce = shipState.mCurrentPitchForce;
-
-	mEngine.mWantedThrust = shipState.mEngineWantedThrust;
-	mEngine.mRealThrust = shipState.mEngineRealThrust;
-
+	mCurrentRollForce = _shipState.mCurrentRollForce;
+	mCurrentYawForce = _shipState.mCurrentYawForce;
+	mCurrentPitchForce = _shipState.mCurrentPitchForce;
+	
+	mEngine.mWantedThrust = _shipState.mEngineWantedThrust;
+	mEngine.mRealThrust = _shipState.mEngineRealThrust;
+	
 	//Hardpoints
-	const std::vector<std::pair<int, float> >& harpointsState = shipState.mHarpointsState;
+	const std::vector<std::pair<int, float> >& harpointsState = _shipState.mHarpointsState;
 	size_t hardpointsSize = harpointsState.size();
 	for (size_t i = 0; i < hardpointsSize; ++i)
 	{
@@ -235,27 +210,6 @@ void Ship::setState(SectorTick _tick)
 		}
 	}
 }
-
-//bool Ship::checkAndFixState(const ShipState& _state)
-//{
-//	ShipState currentState;
-	/*mSateManager.
-
-	bool result = compareStates(currentState, _state);
-
-	//If too much difference we fix it
-	if(!result)
-	{
-		mRigidBody->clearForces();
-		mRigidBody->setLinearVelocity(_state.mLinearVelocity);
-		mRigidBody->setAngularVelocity(_state.mAngularVelocity);
-		mRigidBody->applyCentralForce(_state.mTotalForce);
-		mRigidBody->applyTorque(_state.mTotalTorque);
-		this->forceWorldTransform(_state.mWorldTransform);
-	}*/
-	
-//	return true;//result;
-//}
 
 void Ship::serialize(RakNet::BitStream& _bitStream) const
 {

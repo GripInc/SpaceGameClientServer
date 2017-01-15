@@ -90,9 +90,6 @@ protected:
 	//Update rate
 	float mSectorUpdateRate = 0.f;
 
-	//Set all sector's objects to the state they were at tick
-	void setSectorState(SectorTick _tick);
-
 	//Save all entities states (not the sector himself)
 	void saveSectorState(SectorTick _tick);
 

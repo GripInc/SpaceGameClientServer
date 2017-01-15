@@ -197,30 +197,6 @@ void Sector::switchDisplay()
 	setStaticObjectsVisible(mDoDisplayWorld);
 }
 
-void Sector::saveSectorState(SectorTick _tick)
-{
-	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "saveSectorState", "_tick is : " + StringUtils::toStr(_tick), false);
-
-	for (std::pair<RakNet::RakNetGUID, Ship*> UIdShipPair : mShips)
-	{
-		UIdShipPair.second->saveState(_tick);
-	}
-
-	//TODO other kind of entities
-}
-
-void Sector::setSectorState(SectorTick _tick)
-{
-	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "setSectorState", "_tick is " + StringUtils::toStr(_tick), false);
-
-	for(std::map<RakNet::RakNetGUID, Ship*>::iterator shipIt = mShips.begin(), shipItEnd = mShips.end(); shipIt != shipItEnd; ++shipIt)
-	{
-		(*shipIt).second->setState(_tick);
-	}
-
-	//TODO other kind of entities
-}
-
 void Sector::updateShipSystems(const InputState& _input, Ship* _ship, float _deltaTime)
 {
 	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateShipSystems", "START with input with tick " + StringUtils::toStr(_input.mTick), false);

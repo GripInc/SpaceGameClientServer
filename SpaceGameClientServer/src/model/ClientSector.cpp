@@ -96,8 +96,7 @@ void ClientSector::updateSector(ShipInputHandler& _shipInputHandler)
 					LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateSector", "Setting ship state at tick : " + StringUtils::toStr(resimulateFromTick) + " for ship id " + StringUtils::toStr(pair.first.ToString()), false);
 
 					Ship* ship = (*foundShip).second;
-					ship->overrideSavedState(resimulateFromTick, pair.second);
-					ship->setState(resimulateFromTick);
+					ship->setState(pair.second);
 				}
 				else
 				{
