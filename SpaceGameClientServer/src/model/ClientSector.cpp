@@ -174,14 +174,10 @@ void ClientSector::updateShipsSystems(float _deltaTime, SectorTick _sectorTick)
 {
 	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateShipsSystems", "", false);
 
-	const std::map<SectorTick, InputState >::const_iterator playerInputIt = mPlayerInputHistory.find(_sectorTick);
-	if (playerInputIt != mPlayerInputHistory.end())
+	const InputState* inputState = getInputAtTick(_sectorTick);
+	if (inputState != NULL)
 	{
-		updateShipSystems((*playerInputIt).second, mPlayerShip, _deltaTime);
-	}
-	else
-	{
-		//TODO Log error
+		updateShipSystems(*inputState, mPlayerShip, _deltaTime);
 	}
 }
 
@@ -236,7 +232,7 @@ void ClientSector::addPlayerInputInHistory(const InputState& _inputState)
 {
 	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "addPlayerInputInHistory", "mSectorTick is " + StringUtils::toStr(mSectorTick), false);
 
-	mPlayerInputHistory[mSectorTick] = _inputState;
+	mPlayerInputHistory.push_back(_inputState);
 
 	//Check that we don't have too much history
 	/*if((*mPlayerInputHistory.begin()).first < mSectorTick - (mMaxInputRewind * 2))
@@ -247,10 +243,13 @@ void ClientSector::addPlayerInputInHistory(const InputState& _inputState)
 	}*/
 }
 
-void ClientSector::getPlayerInputAtTick(SectorTick _tick, InputState& _inputState)
+const InputState* ClientSector::getInputAtTick(SectorTick _sectorTick) const
 {
-	//Get last valid player input from _tick
-	std::map<SectorTick, InputState>::const_iterator foundInput = mPlayerInputHistory.find(_tick);
-	if (foundInput != mPlayerInputHistory.end())
-		_inputState = (*foundInput).second;
+	for (std::list<InputState>::const_reference inputState : mPlayerInputHistory)
+	{
+		if (inputState.mTick == _sectorTick)
+			return &inputState;
+	}
+
+	return NULL;
 }

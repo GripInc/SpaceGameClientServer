@@ -68,9 +68,9 @@ protected:
 	
 	//Input handling
 	ClientsInputMap mLastClientsInput;
-	std::map<SectorTick, InputState> mPlayerInputHistory;
+	std::list<InputState> mPlayerInputHistory;
 	void addPlayerInputInHistory(const InputState& _inputState);
-	void getPlayerInputAtTick(SectorTick _tick, InputState& _inputState);
+	const InputState* getInputAtTick(SectorTick _sectorTick) const;
 	unsigned int mMaxInputRewind = 0;
 
 	//Stored last received sector state
