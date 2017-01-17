@@ -8,7 +8,7 @@
 
 namespace
 {
-	const std::string LOG_CLASS_TAG = "SectorController";
+	const std::string LOG_CLASS_TAG = "ServerSectorController";
 }
 
 void ServerSectorController::initSector(const std::string& _sectorName, Ogre::SceneManager* _sceneManager, float _sectorUpdateRate)

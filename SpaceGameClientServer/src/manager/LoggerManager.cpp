@@ -22,7 +22,7 @@ const LoggerManager& LoggerManager::getInstance()
 
 void LoggerManager::log(const std::string& _string, bool _writeOnStandardOutput, bool _addNewLine) const
 {
-	std::string toLog = _addNewLine ? "\n" : "" + _string;
+	std::string toLog = (_addNewLine ? "\n" : "") + _string;
 	toLog += "\n";
 #ifdef _DEBUG
 	OutputDebugString(toLog.c_str());
