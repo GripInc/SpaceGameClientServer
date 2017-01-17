@@ -140,8 +140,8 @@ void ClientSector::updateShipsView(SectorTick _sectorTick)
 void ClientSector::updateSectorView()
 {
 	//if(mSectorTick > 5)
-		//updateShipsView(mSectorTick - 5);
-	updateShipsView(mSectorTick);
+	//	updateShipsView(mSectorTick - 5);
+	updateShipsView(mSectorTick - 1); //Has to be Max mSectorTick-1 because update view comes after model is updated, and we do mSectorTick+1 AFTER saving state at mSectorTick
 }
 
 /*void Sector::updateShots(float _deltaTime)
