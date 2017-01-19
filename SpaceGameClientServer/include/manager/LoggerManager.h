@@ -12,6 +12,7 @@ public:
 	void logW(const std::string& _logClass, const std::string& _logFunction, const std::string& _log, bool _addNewLine = false) const;
 	void logI(const std::string& _logClass, const std::string& _logFunction, const std::string& _log, bool _forceStdOut, bool _addNewLine = false) const;
 	std::string getMilliseconds() const;
+	std::string getDate() const;
 
 protected:
 	LoggerManager() {}

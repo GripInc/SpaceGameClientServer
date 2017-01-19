@@ -60,6 +60,30 @@ std::string LoggerManager::getMilliseconds() const
 	return result.str();
 }
 
+std::string LoggerManager::getDate() const
+{
+	tm localTime;
+	std::chrono::system_clock::time_point timePoint = std::chrono::system_clock::now();
+	time_t now = std::chrono::system_clock::to_time_t(timePoint);
+	localtime_s(&localTime, &now);
+
+	const std::chrono::duration<double> timeSinceEpoch = timePoint.time_since_epoch();
+	std::chrono::seconds::rep milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(timeSinceEpoch).count() % 1000;
+
+	std::ostringstream result;
+
+	//result << (1900 + localTime.tm_year) << '-'
+	//	<< std::setfill('0') << std::setw(2) << (localTime.tm_mon + 1) << '-'
+	//	<< std::setfill('0') << std::setw(2) << localTime.tm_mday << ' '
+	result << std::setfill('0') << std::setw(2) << localTime.tm_hour << ':'
+		<< std::setfill('0') << std::setw(2) << localTime.tm_min << ':'
+		<< std::setfill('0') << std::setw(2) << localTime.tm_sec << '.'
+		<< std::setfill('0') << std::setw(3) << milliseconds
+		<< std::endl;
+
+	return result.str();
+}
+
 void LoggerManager::logE(const std::string& _logClass, const std::string& _logFunction, const std::string& _log, bool _addNewLine /* = false */) const
 {
 	log(getMilliseconds() + "::" + "ERROR IN : " + _logClass + "::" + _logFunction + (_log.empty() ? "" : (" : " + _log)), true, _addNewLine);

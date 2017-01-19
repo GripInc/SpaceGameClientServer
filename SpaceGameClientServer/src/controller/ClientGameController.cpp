@@ -175,40 +175,42 @@ void ClientGameController::updateDebugPanel(Ogre::Real _timeSinceLastFrame)
 		if (mUIController->getDebugPanel()->getAllParamNames().size() == 0)
 		{
 			Ogre::StringVector paramNames;
-			paramNames.push_back(mSectorController->getPlayerShip()->getObjectParts()[0].getName());
-			paramNames.push_back(mSectorController->getPlayerShip()->getObjectParts()[1].getName());
-			paramNames.push_back(mSectorController->getPlayerShip()->getObjectParts()[2].getName());
-			paramNames.push_back(mSectorController->getPlayerShip()->getObjectParts()[3].getName());
-			paramNames.push_back(mSectorController->getPlayerShip()->getObjectParts()[4].getName());
-			paramNames.push_back(mSectorController->getPlayerShip()->getObjectParts()[5].getName());
-			paramNames.push_back(mSectorController->getPlayerShip()->getObjectParts()[6].getName());
-			paramNames.push_back("LaggyValue");
-			paramNames.push_back("PosX");
-			paramNames.push_back("PosY");
-			paramNames.push_back("PosZ");
-			paramNames.push_back("engineForce");
-			paramNames.push_back("pitch");
-			paramNames.push_back("yaw");
+			//paramNames.push_back(mSectorController->getPlayerShip()->getObjectParts()[0].getName());
+			//paramNames.push_back(mSectorController->getPlayerShip()->getObjectParts()[1].getName());
+			//paramNames.push_back(mSectorController->getPlayerShip()->getObjectParts()[2].getName());
+			//paramNames.push_back(mSectorController->getPlayerShip()->getObjectParts()[3].getName());
+			//paramNames.push_back(mSectorController->getPlayerShip()->getObjectParts()[4].getName());
+			//paramNames.push_back(mSectorController->getPlayerShip()->getObjectParts()[5].getName());
+			//paramNames.push_back(mSectorController->getPlayerShip()->getObjectParts()[6].getName());
+			//paramNames.push_back("LaggyValue");
+			//paramNames.push_back("PosX");
+			//paramNames.push_back("PosY");
+			//paramNames.push_back("PosZ");
+			//paramNames.push_back("engineForce");
+			//paramNames.push_back("pitch");
+			//paramNames.push_back("yaw");
+			paramNames.push_back("frame:");
 
 			mUIController->getDebugPanel()->setAllParamNames(paramNames);
 		}
 		mDebugPanelLastRefresh += _timeSinceLastFrame;
 		if (mDebugPanelLastRefresh > sDebugPanelRefreshRate)
 		{
-			mUIController->getDebugPanel()->setParamValue(0, StringUtils::toStr(mSectorController->getPlayerShip()->getObjectParts()[0].mHitPoints));
-			mUIController->getDebugPanel()->setParamValue(1, StringUtils::toStr(mSectorController->getPlayerShip()->getObjectParts()[1].mHitPoints));
-			mUIController->getDebugPanel()->setParamValue(2, StringUtils::toStr(mSectorController->getPlayerShip()->getObjectParts()[2].mHitPoints));
-			mUIController->getDebugPanel()->setParamValue(3, StringUtils::toStr(mSectorController->getPlayerShip()->getObjectParts()[3].mHitPoints));
-			mUIController->getDebugPanel()->setParamValue(4, StringUtils::toStr(mSectorController->getPlayerShip()->getObjectParts()[4].mHitPoints));
-			mUIController->getDebugPanel()->setParamValue(5, StringUtils::toStr(mSectorController->getPlayerShip()->getObjectParts()[5].mHitPoints));
-			mUIController->getDebugPanel()->setParamValue(6, StringUtils::toStr(mSectorController->getPlayerShip()->getObjectParts()[6].mHitPoints));
-			mUIController->getDebugPanel()->setParamValue(7, StringUtils::toStr(mLaggyValue));
-			mUIController->getDebugPanel()->setParamValue(8, StringUtils::toStr(mSectorController->getPlayerShip()->getSceneNode()->getPosition().x));
-			mUIController->getDebugPanel()->setParamValue(9, StringUtils::toStr(mSectorController->getPlayerShip()->getSceneNode()->getPosition().y));
-			mUIController->getDebugPanel()->setParamValue(10, StringUtils::toStr(mSectorController->getPlayerShip()->getSceneNode()->getPosition().z));
-			mUIController->getDebugPanel()->setParamValue(11, StringUtils::toStr(mSectorController->getPlayerShip()->mEngineRealForce));
-			mUIController->getDebugPanel()->setParamValue(12, StringUtils::toStr(mSectorController->getPlayerShip()->getSceneNode()->getOrientation().getPitch()));
-			mUIController->getDebugPanel()->setParamValue(13, StringUtils::toStr(mSectorController->getPlayerShip()->getSceneNode()->getOrientation().getYaw()));
+			//mUIController->getDebugPanel()->setParamValue(0, StringUtils::toStr(mSectorController->getPlayerShip()->getObjectParts()[0].mHitPoints));
+			//mUIController->getDebugPanel()->setParamValue(1, StringUtils::toStr(mSectorController->getPlayerShip()->getObjectParts()[1].mHitPoints));
+			//mUIController->getDebugPanel()->setParamValue(2, StringUtils::toStr(mSectorController->getPlayerShip()->getObjectParts()[2].mHitPoints));
+			//mUIController->getDebugPanel()->setParamValue(3, StringUtils::toStr(mSectorController->getPlayerShip()->getObjectParts()[3].mHitPoints));
+			//mUIController->getDebugPanel()->setParamValue(4, StringUtils::toStr(mSectorController->getPlayerShip()->getObjectParts()[4].mHitPoints));
+			//mUIController->getDebugPanel()->setParamValue(5, StringUtils::toStr(mSectorController->getPlayerShip()->getObjectParts()[5].mHitPoints));
+			//mUIController->getDebugPanel()->setParamValue(6, StringUtils::toStr(mSectorController->getPlayerShip()->getObjectParts()[6].mHitPoints));
+			//mUIController->getDebugPanel()->setParamValue(7, StringUtils::toStr(mLaggyValue));
+			//mUIController->getDebugPanel()->setParamValue(8, StringUtils::toStr(mSectorController->getPlayerShip()->getSceneNode()->getPosition().x));
+			//mUIController->getDebugPanel()->setParamValue(9, StringUtils::toStr(mSectorController->getPlayerShip()->getSceneNode()->getPosition().y));
+			//mUIController->getDebugPanel()->setParamValue(10, StringUtils::toStr(mSectorController->getPlayerShip()->getSceneNode()->getPosition().z));
+			//mUIController->getDebugPanel()->setParamValue(11, StringUtils::toStr(mSectorController->getPlayerShip()->mEngineRealForce));
+			//mUIController->getDebugPanel()->setParamValue(12, StringUtils::toStr(mSectorController->getPlayerShip()->getSceneNode()->getOrientation().getPitch()));
+			//mUIController->getDebugPanel()->setParamValue(13, StringUtils::toStr(mSectorController->getPlayerShip()->getSceneNode()->getOrientation().getYaw()));
+			mUIController->getDebugPanel()->setParamValue(0, LoggerManager::getInstance().getDate());
 			mDebugPanelLastRefresh = 0.f;
 		}
 	}
