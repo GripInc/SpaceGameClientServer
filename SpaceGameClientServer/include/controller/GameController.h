@@ -38,7 +38,7 @@ protected:
 
 	virtual void processNetworkBuffer() = 0;
 	virtual void updateSector() = 0;
-	virtual void updateSectorView() = 0;
+	virtual void updateSectorView(float _elapsedTime) = 0;
 	virtual void updateDebugPanel(Ogre::Real _timeSinceLastFrame) = 0;
 	virtual void handleSwitching();
 

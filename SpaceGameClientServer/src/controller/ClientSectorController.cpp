@@ -44,9 +44,9 @@ void ClientSectorController::updateSector(ShipInputHandler& _shipInputHandler)
 	mCurrentSector->updateSector(_shipInputHandler);
 }
 
-void ClientSectorController::updateSectorView()
+void ClientSectorController::updateSectorView(float _elapsedTime)
 {
-	mCurrentSector->updateSectorView();
+	mCurrentSector->updateSectorView(_elapsedTime);
 }
 
 void ClientSectorController::receivedSectorState(RakNet::BitStream& _data) const

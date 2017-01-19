@@ -182,6 +182,6 @@ void ServerSector::updateShipsView()
 {
 	for (std::map<RakNet::RakNetGUID, Ship*>::iterator shipIt = mShips.begin(), shipItEnd = mShips.end(); shipIt != shipItEnd; ++shipIt)
 	{
-		(*shipIt).second->updateView(mSectorTick);
+		(*shipIt).second->updateView(mSectorTick, 1.f, 1.f);
 	}
 }

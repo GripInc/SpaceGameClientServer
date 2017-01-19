@@ -195,13 +195,30 @@ void Ship::saveState(SectorTick _tick)
 	mStateManager.saveState(_tick, ShipState(mRigidBody, mCurrentRollForce, mCurrentYawForce, mCurrentPitchForce, mEngine.mWantedThrust, mEngine.mRealThrust, hardpointsState));
 }
 
-void Ship::updateView(SectorTick _sectorTick)
+void Ship::updateView(SectorTick _sectorTick, float _elapsedTime, float _sectorUpdateRate)
 {
-	ShipState output;
-	mStateManager.getState(_sectorTick, output);
+	ShipState shipSateFromTick, shipSateFromTickminusOne;
+	mStateManager.getState(_sectorTick, shipSateFromTick);
+	mStateManager.getState(_sectorTick - 1, shipSateFromTickminusOne);
 
-	Ogre::Quaternion orientation = convert(output.mWorldTransform.getRotation());
-	Ogre::Vector3 position = convert(output.mWorldTransform.getOrigin());
+	btQuaternion rotationAtTick = shipSateFromTick.mWorldTransform.getRotation();
+	btQuaternion rotationAtTickMinusOne = shipSateFromTickminusOne.mWorldTransform.getRotation();
+
+	btVector3& positionAtTick = shipSateFromTick.mWorldTransform.getOrigin();
+	btVector3& positionAtTickMinusOne = shipSateFromTickminusOne.mWorldTransform.getOrigin();
+
+	//TODO compute interpolatedRotation
+	btQuaternion interpolatedRotation = rotationAtTickMinusOne;
+
+	//DEBUG values
+	btVector3 test1 = positionAtTick - positionAtTickMinusOne;
+	float test2 = _sectorUpdateRate / _elapsedTime;
+
+
+	btVector3 interpolatedPosition = positionAtTickMinusOne + ((positionAtTick - positionAtTickMinusOne) / (_sectorUpdateRate / _elapsedTime));
+
+	Ogre::Quaternion orientation = convert(interpolatedRotation);
+	Ogre::Vector3 position = convert(interpolatedPosition);
 
 	mSceneNode->setPosition(position);
 	mSceneNode->setOrientation(orientation);

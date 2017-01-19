@@ -32,7 +32,7 @@ public:
 
 	//Update function
 	void updateSector(ShipInputHandler& _shipInputHandler);
-	void updateSectorView();
+	void updateSectorView(float _elapsedTime);
 
 	//Received sector update from server
 	void receivedSectorState(RakNet::BitStream& _data) const;

@@ -46,7 +46,7 @@ public:
 
 	//Update function
 	void updateSector(ShipInputHandler& _shipInputHandler);
-	void updateSectorView();
+	void updateSectorView(float _elapsedTime);
 
 	//For debug only
 	const Ship* getPlayerShip() const { return mPlayerShip; }
@@ -66,7 +66,7 @@ protected:
 
 	//Updates
 	void updateShipsSystems(float _deltaTime, SectorTick _sectorTick);
-	void updateShipsView(SectorTick _sectorTick);
+	void updateShipsView(SectorTick _sectorTick, float _elapsedTime);
 
 	//Input handling
 	ClientsInputMap mLastClientsInput;

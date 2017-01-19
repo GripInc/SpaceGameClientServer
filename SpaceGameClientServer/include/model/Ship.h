@@ -75,7 +75,7 @@ public:
 	virtual void saveState(SectorTick _tick) override;
 	virtual void setState(const ShipState& _shipState);
 
-	void updateView(SectorTick _sectorTick);
+	void updateView(SectorTick _sectorTick, float _elapsedTime, float _sectorUpdateRate);
 
 protected:
 	///Ship properties from XML

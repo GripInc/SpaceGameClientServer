@@ -159,12 +159,12 @@ void ClientGameController::updateSector()
 	}
 }
 
-void ClientGameController::updateSectorView()
+void ClientGameController::updateSectorView(float _elapsedTime)
 {
 	if (mSectorController)
 	{
 		//Sector update for next sector tick
-		mSectorController->updateSectorView();
+		mSectorController->updateSectorView(_elapsedTime);
 	}
 }
 

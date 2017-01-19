@@ -129,19 +129,21 @@ void ClientSector::updateSector(ShipInputHandler& _shipInputHandler)
 	mSectorTick++;
 }
 
-void ClientSector::updateShipsView(SectorTick _sectorTick)
+void ClientSector::updateShipsView(SectorTick _sectorTick, float _elapsedTime)
 {
 	for (std::map<RakNet::RakNetGUID, Ship*>::iterator shipIt = mShips.begin(), shipItEnd = mShips.end(); shipIt != shipItEnd; ++shipIt)
 	{
-		(*shipIt).second->updateView(_sectorTick);
+		(*shipIt).second->updateView(_sectorTick, _elapsedTime, mSectorUpdateRate);
 	}
 }
 
-void ClientSector::updateSectorView()
+void ClientSector::updateSectorView(float _elapsedTime)
 {
 	//if(mSectorTick > 5)
 	//	updateShipsView(mSectorTick - 5);
-	updateShipsView(mSectorTick - 1); //Has to be Max mSectorTick-1 because update view comes after model is updated, and we do mSectorTick+1 AFTER saving state at mSectorTick
+
+	//mSectorTick-1 is last saved state, -2 is before last one
+	updateShipsView(mSectorTick - 1, _elapsedTime); //Has to be Max mSectorTick-1 because update view comes after model is updated, and we do mSectorTick+1 AFTER saving state at mSectorTick
 }
 
 /*void Sector::updateShots(float _deltaTime)
