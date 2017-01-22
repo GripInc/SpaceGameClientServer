@@ -17,6 +17,11 @@
 
 #include "manager/LoggerManager.h"
 
+namespace
+{
+	const std::string LOG_CLASS_TAG = "Ship";
+}
+
 void Ship::initModel(const ShipSettings* _shipSettings)
 {
 	mObjectSettings = _shipSettings;
@@ -197,31 +202,71 @@ void Ship::saveState(SectorTick _tick)
 
 void Ship::updateView(SectorTick _sectorTick, float _elapsedTime, float _sectorUpdateRate)
 {
-	ShipState shipSateFromTick, shipSateFromTickminusOne;
-	mStateManager.getState(_sectorTick, shipSateFromTick);
+	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateView", "START at tick " + StringUtils::toStr(_sectorTick) + "; _elapsedTime is " + StringUtils::toStr(_elapsedTime) + "; _sectorUpdateRate is:" + StringUtils::toStr(_sectorUpdateRate), false);
+
+	ShipState shipSateFromTickminusOne, shipSateFromTick;
 	mStateManager.getState(_sectorTick - 1, shipSateFromTickminusOne);
+	mStateManager.getState(_sectorTick, shipSateFromTick);
 
-	btQuaternion rotationAtTick = shipSateFromTick.mWorldTransform.getRotation();
-	btQuaternion rotationAtTickMinusOne = shipSateFromTickminusOne.mWorldTransform.getRotation();
+	float scalar = _elapsedTime / _sectorUpdateRate;
 
-	btVector3& positionAtTick = shipSateFromTick.mWorldTransform.getOrigin();
-	btVector3& positionAtTickMinusOne = shipSateFromTickminusOne.mWorldTransform.getOrigin();
+	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateView", "start position:x:" + StringUtils::toStr(shipSateFromTickminusOne.mWorldTransform.getOrigin().x()), false);
+	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateView", "end position:x:" + StringUtils::toStr(shipSateFromTick.mWorldTransform.getOrigin().x()), false);
+	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateView", "scalar:" + StringUtils::toStr(scalar), false);
+	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateView", "mAccumulatorRest:" + StringUtils::toStr(mAccumulatorRest), false);
 
-	//TODO compute interpolatedRotation
-	btQuaternion interpolatedRotation = rotationAtTickMinusOne;
+	if (mLastTickViewed < _sectorTick)
+	{
+		LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateView", "beginning of new tick", false);
 
-	//DEBUG values
-	btVector3 test1 = positionAtTick - positionAtTickMinusOne;
-	float test2 = _sectorUpdateRate / _elapsedTime;
+		mLastTickViewed = _sectorTick;
+		mAccumulator = scalar;
 
+		mInterpolatedRotation = shipSateFromTickminusOne.mWorldTransform.getRotation();
+		mInterpolatedPosition = shipSateFromTickminusOne.mWorldTransform.getOrigin();
 
-	btVector3 interpolatedPosition = positionAtTickMinusOne + ((positionAtTick - positionAtTickMinusOne) / (_sectorUpdateRate / _elapsedTime));
+		LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateView", "start position:x:" + StringUtils::toStr(mInterpolatedPosition.x()), false);
 
-	Ogre::Quaternion orientation = convert(interpolatedRotation);
-	Ogre::Vector3 position = convert(interpolatedPosition);
+		btQuaternion rotationAtTick = shipSateFromTick.mWorldTransform.getRotation();
+		btVector3& positionAtTick = shipSateFromTick.mWorldTransform.getOrigin();
 
-	mSceneNode->setPosition(position);
+		mInterpolatedRotation = mInterpolatedRotation.slerp(rotationAtTick, mAccumulator);
+		mInterpolatedPosition = mInterpolatedPosition.lerp(positionAtTick, mAccumulator);
+
+		LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateView", "mAccumulator:" + StringUtils::toStr(mAccumulator), false);
+		LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateView", "mInterpolatedPosition after :x:" + StringUtils::toStr(mInterpolatedPosition.x()), false);
+	}
+	else
+	{
+		mAccumulator += scalar;
+
+		LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateView", "mAccumulator:" + StringUtils::toStr(mAccumulator), false);
+		
+		if (mAccumulator >= 1.f)
+		{
+			mInterpolatedRotation = shipSateFromTick.mWorldTransform.getRotation();
+			mInterpolatedPosition = shipSateFromTick.mWorldTransform.getOrigin();
+		}
+		else
+		{
+			btQuaternion rotationAtTick = shipSateFromTick.mWorldTransform.getRotation();
+			btVector3& positionAtTick = shipSateFromTick.mWorldTransform.getOrigin();
+
+			mInterpolatedRotation = shipSateFromTickminusOne.mWorldTransform.getRotation();
+			mInterpolatedPosition = shipSateFromTickminusOne.mWorldTransform.getOrigin();
+
+			mInterpolatedRotation = mInterpolatedRotation.slerp(rotationAtTick, mAccumulator);
+			mInterpolatedPosition = mInterpolatedPosition.lerp(positionAtTick, mAccumulator);
+
+			LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateView", "mInterpolatedPosition after :x:" + StringUtils::toStr(mInterpolatedPosition.x()), false);
+		}
+	}
+
+	Ogre::Quaternion orientation = convert(mInterpolatedRotation);
+	Ogre::Vector3 position = convert(mInterpolatedPosition);
+
 	mSceneNode->setOrientation(orientation);
+	mSceneNode->setPosition(position);
 }
 
 void Ship::setState(const ShipState& _shipState)

@@ -88,6 +88,13 @@ protected:
 
 	btAlignedObjectArray<HardPoint> mHardPoints;
 
+	//View stuff
+	btVector3 mInterpolatedPosition;
+	btQuaternion mInterpolatedRotation;
+	SectorTick mLastTickViewed = 0;
+	float mAccumulator = 0.f;
+	float mAccumulatorRest = 0.f;
+
 	///Engine
 	Engine mEngine;
 	///Directional system
