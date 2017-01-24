@@ -204,48 +204,89 @@ void Ship::updateView(SectorTick _sectorTick, float _elapsedTime, float _sectorU
 {
 	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateView", "START at tick " + StringUtils::toStr(_sectorTick) + "; _elapsedTime is " + StringUtils::toStr(_elapsedTime) + "; _sectorUpdateRate is:" + StringUtils::toStr(_sectorUpdateRate), false);
 
-	if (mLastTickViewed < _sectorTick)
-	{
-		mLastTickViewed = _sectorTick;
-		mAccumulator = _elapsedTime;
-	}
-	else
-	{
-		mAccumulator += _elapsedTime;
-	}
-
 	ShipState shipSateFromTickminusOne, shipSateFromTick;
 	mStateManager.getState(_sectorTick - 1, shipSateFromTickminusOne);
 	mStateManager.getState(_sectorTick, shipSateFromTick);
 
+	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateView", "start position:x:" + StringUtils::toStr(shipSateFromTickminusOne.mWorldTransform.getOrigin().x()), false);
+	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateView", "end position:x:" + StringUtils::toStr(shipSateFromTick.mWorldTransform.getOrigin().x()), false);
+	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateView", "mAccumulatorRest:" + StringUtils::toStr(mAccumulatorRest), false);
+
 	//Loosing time, no interpolation
 	if (_elapsedTime >= _sectorUpdateRate)
 	{
-		mInterpolatedRotation = shipSateFromTick.mWorldTransform.getRotation();
-		mInterpolatedPosition = shipSateFromTick.mWorldTransform.getOrigin();
+		mLastTickViewed = _sectorTick;
+
+		mInterpolatedRotation = shipSateFromTickminusOne.mWorldTransform.getRotation();
+		mInterpolatedPosition = shipSateFromTickminusOne.mWorldTransform.getOrigin();
 	}
 	else
 	{
-		//Interpolate with rest of accumulator. We use former mInterpolatedRotation and mInterpolatedPosition
-		//Should not happen more than once in a tick
-		if (mAccumulator > _sectorUpdateRate)
+		if (mLastTickViewed < _sectorTick)
 		{
-			mAccumulator -= _sectorUpdateRate;
+			LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateView", "beginning of new tick", false);
+
+			mLastTickViewed = _sectorTick;
+			mAccumulator = _elapsedTime;
+
+			mInterpolatedRotation = shipSateFromTickminusOne.mWorldTransform.getRotation();
+			mInterpolatedPosition = shipSateFromTickminusOne.mWorldTransform.getOrigin();
+
+			LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateView", "start position:x:" + StringUtils::toStr(mInterpolatedPosition.x()), false);
+
+			btQuaternion rotationAtTick = shipSateFromTick.mWorldTransform.getRotation();
+			btVector3& positionAtTick = shipSateFromTick.mWorldTransform.getOrigin();
+
+			float scalar = mAccumulator / _sectorUpdateRate;
+
+			mInterpolatedRotation = mInterpolatedRotation.slerp(rotationAtTick, scalar);
+			mInterpolatedPosition = mInterpolatedPosition.lerp(positionAtTick, scalar);
+
+			LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateView", "mAccumulator:" + StringUtils::toStr(mAccumulator), false);
+			LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateView", "scalar:" + StringUtils::toStr(scalar), false);
+			LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateView", "mInterpolatedPosition after :x:" + StringUtils::toStr(mInterpolatedPosition.x()), false);
 		}
 		else
 		{
-			//Here to interpolate we use tick minus one transform
-			mInterpolatedRotation = shipSateFromTickminusOne.mWorldTransform.getRotation();
-			mInterpolatedPosition = shipSateFromTickminusOne.mWorldTransform.getOrigin();
+			mAccumulator += _elapsedTime;
+
+			LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateView", "mAccumulator:" + StringUtils::toStr(mAccumulator), false);
+
+			if (mAccumulator > _sectorUpdateRate)
+			{
+				LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateView", "### mAccumulator >= _sectorUpdateRate", false);
+
+				mAccumulator -= _sectorUpdateRate;
+
+				float scalar = mAccumulator / _sectorUpdateRate;
+
+				LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateView", "mInterpolatedPosition before :x:" + StringUtils::toStr(mInterpolatedPosition.x()), false);
+				
+				btQuaternion rotationAtTick = shipSateFromTick.mWorldTransform.getRotation();
+				btVector3& positionAtTick = shipSateFromTick.mWorldTransform.getOrigin();
+				
+				mInterpolatedRotation = mInterpolatedRotation.slerp(rotationAtTick, scalar);
+				mInterpolatedPosition = mInterpolatedPosition.lerp(positionAtTick, scalar);
+				
+				LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateView", "mInterpolatedPosition after :x:" + StringUtils::toStr(mInterpolatedPosition.x()), false);
+			}
+			else
+			{
+				btQuaternion rotationAtTick = shipSateFromTick.mWorldTransform.getRotation();
+				btVector3& positionAtTick = shipSateFromTick.mWorldTransform.getOrigin();
+
+				mInterpolatedRotation = shipSateFromTickminusOne.mWorldTransform.getRotation();
+				mInterpolatedPosition = shipSateFromTickminusOne.mWorldTransform.getOrigin();
+
+				float scalar = mAccumulator / _sectorUpdateRate;
+
+				mInterpolatedRotation = mInterpolatedRotation.slerp(rotationAtTick, scalar);
+				mInterpolatedPosition = mInterpolatedPosition.lerp(positionAtTick, scalar);
+
+				LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateView", "scalar:" + StringUtils::toStr(scalar), false);
+				LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateView", "mInterpolatedPosition after :x:" + StringUtils::toStr(mInterpolatedPosition.x()), false);
+			}
 		}
-
-		btQuaternion rotationAtTick = shipSateFromTick.mWorldTransform.getRotation();
-		btVector3& positionAtTick = shipSateFromTick.mWorldTransform.getOrigin();
-
-		float scalar = mAccumulator / _sectorUpdateRate;
-
-		mInterpolatedRotation = mInterpolatedRotation.slerp(rotationAtTick, scalar);
-		mInterpolatedPosition = mInterpolatedPosition.lerp(positionAtTick, scalar);
 	}
 
 	Ogre::Quaternion orientation = convert(mInterpolatedRotation);
