@@ -20,8 +20,7 @@ public:
 protected:
 	static const float GAME_UPDATE_RATE;
 	static const unsigned int GAME_UPDATE_PER_SECONDS;
-	static const unsigned int GAME_BUFFER_LENGTH_IN_HERTZ;
-	//static const unsigned int GAME_BUFFER_LENGTH_IN_FRAME;
+	static const unsigned int SERVER_INPUT_BUFFER_LENGTH;
 	float mGameUpdateAccumulator = 0.f;
 	Ogre::Timer mLoopTimer;
 
@@ -37,7 +36,7 @@ protected:
 	bool frameRenderingQueued(const Ogre::FrameEvent& evt);
 
 	virtual void processNetworkBuffer() = 0;
-	virtual void updateSector() = 0;
+	virtual void updateGame() = 0;
 	virtual void updateSectorView(float _elapsedTime) = 0;
 	virtual void updateDebugPanel(Ogre::Real _timeSinceLastFrame) = 0;
 	virtual void handleSwitching();

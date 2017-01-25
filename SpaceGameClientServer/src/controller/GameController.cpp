@@ -18,10 +18,9 @@ namespace
 }
 
 const float GameController::sDebugPanelRefreshRate = 0.1f;
-const unsigned int GameController::GAME_UPDATE_PER_SECONDS = 20U;
-const unsigned int GameController::GAME_BUFFER_LENGTH_IN_HERTZ = 10U; // 1/10th second
+const unsigned int GameController::GAME_UPDATE_PER_SECONDS = 30U;
 const float GameController::GAME_UPDATE_RATE = 1.f / (float)GAME_UPDATE_PER_SECONDS;
-//const unsigned int GameController::GAME_BUFFER_LENGTH_IN_FRAME = GAME_UPDATE_PER_SECONDS / GAME_BUFFER_LENGTH_IN_HERTZ;
+const unsigned int GameController::SERVER_INPUT_BUFFER_LENGTH = 4;
 
 /** Init */
 void GameController::init(const std::string& _gameSettingsFilePath, Ogre::Root* _root, Ogre::RenderWindow* _renderWindow, Ogre::SceneManager* _sceneManager, NetworkLayer& _networkLayer)
@@ -62,14 +61,14 @@ bool GameController::frameRenderingQueued(const Ogre::FrameEvent& evt)
 	{
 		LoggerManager::getInstance().logI(LOG_CLASS_TAG, "frameRenderingQueued", "Entering update loop.", false);
 
-		//Capture input and pass it to all registered controllers
-		mInputController->capture();
-
 		//Process network buffer. In server, add clients input in history
 		processNetworkBuffer();
 
-		//Update sector
-		updateSector();
+		//Capture input and pass it to all registered controllers
+		mInputController->capture();
+
+		//Update game
+		updateGame();
 
 		mGameUpdateAccumulator -= GAME_UPDATE_RATE;
 	}

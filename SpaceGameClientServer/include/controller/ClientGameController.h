@@ -82,13 +82,15 @@ protected:
 	void switchToInSpaceMode(const Ogre::Vector3& _position, const Ogre::Quaternion& _orientation, const std::string& _sectorName, UniqueId _uniqueId, RakNet::RakNetGUID _rakNetGUID, SectorTick _sectorTick);
 
 	StationController* mStationController = nullptr;
+
 	ShipInputHandler mShipInputHandler;
+	void handleInput();
 
 	PlayerData mPlayerData;
 
 	//Specialized functions (client or server) used in frameRenderingQueued
 	virtual void processNetworkBuffer() override;
-	virtual void updateSector() override;
+	virtual void updateGame() override;
 	virtual void updateSectorView(float _elapsedTime) override;
 	virtual void updateDebugPanel(Ogre::Real _timeSinceLastFrame) override;
 	virtual void handleSwitching() override;

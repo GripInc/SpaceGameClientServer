@@ -39,7 +39,7 @@ protected:
 
 	//Specialized functions (client or server) used in frameRenderingQueued
 	virtual void processNetworkBuffer() override;
-	virtual void updateSector() override;
+	virtual void updateGame() override;
 	virtual void updateSectorView(float _elapsedTime) override {}//Update of view is done in update sector sercver side, because view is not mandatory
 	virtual void updateDebugPanel(Ogre::Real _timeSinceLastFrame) override;
 

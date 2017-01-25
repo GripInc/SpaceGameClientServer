@@ -150,8 +150,17 @@ void ClientGameController::processNetworkBuffer()
 	ClientNetworkService::getInstance().processNetworkBuffer();
 }
 
-void ClientGameController::updateSector()
+void ClientGameController::handleInput()
 {
+	//TODO clean acked input
+	//TODO add last input
+	//TODO send input batch with tick
+}
+
+void ClientGameController::updateGame()
+{
+	handleInput();
+
 	if (mSectorController)
 	{
 		//Sector update for next sector tick

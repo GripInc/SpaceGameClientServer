@@ -116,7 +116,7 @@ void ServerGameController::processNetworkBuffer()
 	ServerNetworkService::getInstance().processNetworkBuffer();
 }
 
-void ServerGameController::updateSector()
+void ServerGameController::updateGame()
 {
 	if (mSectorController)
 	{
