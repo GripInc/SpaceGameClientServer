@@ -2,6 +2,7 @@
 #define _STATE_MANAGER_H_
 
 #include <vector>
+#include <map>
 
 #include "SpaceGameTypes.h"
 #include "model/InputState.h"

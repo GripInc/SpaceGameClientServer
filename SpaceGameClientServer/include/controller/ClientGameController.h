@@ -84,7 +84,6 @@ protected:
 	StationController* mStationController = nullptr;
 
 	ShipInputHandler mShipInputHandler;
-	void handleInput();
 
 	PlayerData mPlayerData;
 

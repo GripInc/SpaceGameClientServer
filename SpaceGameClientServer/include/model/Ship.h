@@ -18,6 +18,8 @@ class WeaponSettings;
 class Ship : public DynamicObject
 {
 public:
+	static const float epsilon;
+
 	//Init model for in station
 	void initModel(const ShipSettings* _shipSettings);
 
@@ -56,9 +58,8 @@ public:
 	float mEnginePotentialForce = 0.f;
 
 	void updateForces();
-
-	void updateHardPoints(float _deltaTime);
-
+	void updateSystems(const InputState& _input, float _deltaTime, std::list<ShotSettings>& _outputShots);
+	
 	void destroy();
 
 	UniqueId getUniqueId() const { return mUniqueId; }
@@ -75,7 +76,10 @@ public:
 	virtual void saveState(SectorTick _tick) override;
 	virtual void setState(const ShipState& _shipState);
 
+	//Update view with interpolation (used by client)
 	void updateView(SectorTick _sectorTick, float _elapsedTime, float _sectorUpdateRate);
+	//Update view using current model (used by server)
+	void updateView();
 
 protected:
 	///Ship properties from XML
@@ -99,6 +103,9 @@ protected:
 	Engine mEngine;
 	///Directional system
 	Directional mDirectional;
+
+	//Update hardpoints elapsed time
+	void updateHardPoints(float _deltaTime);
 
 private:
 	StateManager<ShipState> mStateManager;

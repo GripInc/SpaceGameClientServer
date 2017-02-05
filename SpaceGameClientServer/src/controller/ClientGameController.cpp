@@ -141,8 +141,38 @@ void ClientGameController::switchToInSpaceMode(const Ogre::Vector3& _position, c
 
 void ClientGameController::receivedSectorState(RakNet::BitStream& _data) const
 {
+	//Deserialize sector state
+	//Each ship
+	std::map<RakNet::RakNetGUID, ShipState> ships;
+	ships.clear();
+	size_t shipsSize;
+	_data.Read(shipsSize);
+
+	RakNet::RakNetGUID rakNetId;
+	for (size_t i = 0; i < shipsSize; ++i)
+	{
+		//Read client unique id
+		_data.Read(rakNetId);
+
+		//Read ship unique id
+		UniqueId uniqueId;
+		_data.Read(uniqueId);
+
+		//Read ship state
+		ShipState& shipState = ships[rakNetId];
+		shipState.deserialize(_data);
+	}
+
+	//Last ackonwledged input
+	SectorTick lastAcknowledgedInput;
+	_data.Read(lastAcknowledgedInput);
+
+	//Last simulated input
+	SectorTick lastSimulatedInput;
+	_data.Read(lastSimulatedInput);
+
 	if (mSectorController)
-		mSectorController->receivedSectorState(_data);
+		mSectorController->receivedSectorState(ships, lastAcknowledgedInput, lastSimulatedInput);
 }
 
 void ClientGameController::processNetworkBuffer()
@@ -150,17 +180,8 @@ void ClientGameController::processNetworkBuffer()
 	ClientNetworkService::getInstance().processNetworkBuffer();
 }
 
-void ClientGameController::handleInput()
-{
-	//TODO clean acked input
-	//TODO add last input
-	//TODO send input batch with tick
-}
-
 void ClientGameController::updateGame()
 {
-	handleInput();
-
 	if (mSectorController)
 	{
 		//Sector update for next sector tick

@@ -4,7 +4,6 @@
 #include "model/GameSettings.h"
 #include "model/InputState.h"
 #include "model/ObjectPart.h"
-#include "model/HardPoint.h"
 
 #include "controller/SectorController.h"
 
@@ -14,6 +13,7 @@
 #include "utils/BulletDebugDraw.h"
 
 #include "manager/LoggerManager.h"
+#include "manager/InputHistoryManager.h"
 
 #include "network/ServerNetworkService.h"
 
@@ -29,12 +29,11 @@ namespace
 
 UniqueId ServerSector::sUniqueId = -1;
 
-void ServerSector::instantiateClientShip(const RakNet::RakNetGUID& _id, Ship& _ship, const Ogre::Quaternion& _orientation, const Ogre::Vector3& _position, UniqueId& _shipUniqueId, SectorTick& _sectorTick)
+void ServerSector::instantiateClientShip(const RakNet::RakNetGUID& _id, Ship& _ship, const Ogre::Quaternion& _orientation, const Ogre::Vector3& _position, UniqueId& _shipUniqueId)
 {
 	std::map<RakNet::RakNetGUID, Ship*>::const_iterator foundItem = mShips.find(_id);
 	if (foundItem == mShips.end())
 	{
-		_sectorTick = mSectorTick;
 		_shipUniqueId = getNextUniqueId();
 		_ship.init(mSceneManager, mDynamicWorld, _shipUniqueId);
 		_ship.instantiateObject();
@@ -42,7 +41,7 @@ void ServerSector::instantiateClientShip(const RakNet::RakNetGUID& _id, Ship& _s
 		mShips[_id] = &_ship;
 		mUsersIds.insert(_id);
 
-		LoggerManager::getInstance().logI(LOG_CLASS_TAG, "instantiateClientShip", "_sectorTick : " + StringUtils::toStr(_sectorTick) + "; _shipUniqueId : " + StringUtils::toStr(_shipUniqueId) + "; (GUID)_id : " + std::string(_id.ToString()) + "; _shipId : " + _ship.getName(), false);
+		LoggerManager::getInstance().logI(LOG_CLASS_TAG, "instantiateClientShip", "_shipUniqueId : " + StringUtils::toStr(_shipUniqueId) + "; (GUID)_id : " + std::string(_id.ToString()) + "; _shipId : " + _ship.getName(), false);
 	}
 	else
 	{
@@ -51,27 +50,24 @@ void ServerSector::instantiateClientShip(const RakNet::RakNetGUID& _id, Ship& _s
 	}
 }
 
-void ServerSector::updateSector()
+void ServerSector::updateSector(const InputHistoryManager& _inputHistoryManager)
 {
-	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateSector", "mSectorTick : " + StringUtils::toStr(mSectorTick), false);
+	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateSector", "START", false);
 
-	//Update all clients ship systems with clientsInputMap
-	updateShipsSystems(mSectorUpdateRate, mClientsInput.getLastInputReceivedFromClient());
+	//Update all clients ship systems
+	std::list<ShotSettings> outputShots;
+	updateShipsSystems(mSectorUpdateRate, _inputHistoryManager, outputShots);
+	addShotObjects(outputShots);
 
 	//Step physical simulation
 	mDynamicWorld->stepSimulation(mSectorUpdateRate, 0, mSectorUpdateRate);
-	saveSectorState(mSectorTick);
-	
-	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateSector", "Broadcasting to clients mSectorTick is : " + StringUtils::toStr(mSectorTick), false);
 	
 	//Sector state broadcasting
 	RakNet::BitStream bitStream;
 	this->serialize(bitStream);
-	ServerNetworkService::getInstance().broadcastSector(mUsersIds, bitStream, mClientsInput.getLastInputReceivedFromClient());
+	ServerNetworkService::getInstance().broadcastSector(mUsersIds, bitStream, _inputHistoryManager);
 
-	updateShipsView();
-
-	mSectorTick++;
+	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateSector", "END", false);
 }
 
 /*void Sector::updateShots(float _deltaTime)
@@ -116,7 +112,7 @@ shot->getSceneNode()->setPosition(convert(newPosition));
 }
 }*/
 
-void ServerSector::updateShipsSystems(float _deltaTime, const ClientsInputMap& _clientsInputMap)
+void ServerSector::updateShipsSystems(float _deltaTime, const InputHistoryManager& _inputHistoryManager, std::list<ShotSettings>& _outputShots)
 {
 	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateShipsSystems", "START", false);
 
@@ -130,11 +126,11 @@ void ServerSector::updateShipsSystems(float _deltaTime, const ClientsInputMap& _
 
 		//If we find input for the client we use it, else we use default
 		//With no update from client, input is unchanged, meaning that a key pressed is still pressed until client says i not anymore
-		const ClientsInputMap::const_iterator foundClientInput = _clientsInputMap.find(clientId);
-		if (foundClientInput != _clientsInputMap.end())
+		const std::map<RakNet::RakNetGUID, SectorTick>::const_iterator foundClientInput = _inputHistoryManager.getNextInputToUse().find(clientId);
+		if (foundClientInput != _inputHistoryManager.getNextInputToUse().end())
 		{
-			LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateShipsSystems", "Input was found with tick " + StringUtils::toStr((*foundClientInput).second.mTick), false);
-			clientInput = (*foundClientInput).second;
+			LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateShipsSystems", "Found input for tick " + StringUtils::toStr((*foundClientInput).second), false);
+			_inputHistoryManager.getInputForTick(clientId, (*foundClientInput).second, clientInput);
 		}
 		else
 		{
@@ -143,21 +139,15 @@ void ServerSector::updateShipsSystems(float _deltaTime, const ClientsInputMap& _
 
 		LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateShipsSystems", "input is : " + clientInput.getDebugString(), false);
 
-		updateShipSystems(clientInput, clientShip, _deltaTime);
+		clientShip->updateSystems(clientInput, _deltaTime, _outputShots);
+		clientShip->updateForces();
 	}
+	
+	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateShipsSystems", "END", false);
 }
 
 void ServerSector::serialize(RakNet::BitStream& _bitStream) const
 {
-	_bitStream.Write(mSectorTick);
-
-	//serialize last input for each client
-	ClientsInputMap lastClientsInputMap = mClientsInput.getLastInputReceivedFromClient();
-
-	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "serialize", "Serialized at tick "+ StringUtils::toStr(mSectorTick) +":\n" + lastClientsInputMap.getDebugString(), false);
-
-	lastClientsInputMap.serialize(_bitStream);
-
 	//Serialize ships
 	_bitStream.Write(mShips.size());
 	const std::map<RakNet::RakNetGUID, Ship*>::const_iterator shipsItEnd = mShips.end();
@@ -171,17 +161,10 @@ void ServerSector::serialize(RakNet::BitStream& _bitStream) const
 	//TODO shots
 }
 
-void ServerSector::addInput(const RakNet::RakNetGUID& _id, const InputState& _clientInput)
-{
-	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "addInput", "", false);
-
-	mClientsInput.addInput(_id, _clientInput);
-}
-
-void ServerSector::updateShipsView()
+void ServerSector::updateSectorView()
 {
 	for (std::map<RakNet::RakNetGUID, Ship*>::iterator shipIt = mShips.begin(), shipItEnd = mShips.end(); shipIt != shipItEnd; ++shipIt)
 	{
-		(*shipIt).second->updateView(mSectorTick, 1.f, 1.f);
+		(*shipIt).second->updateView();
 	}
 }

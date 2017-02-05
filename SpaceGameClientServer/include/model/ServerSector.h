@@ -13,7 +13,6 @@
 #include "RakNetTypes.h"
 #include "btBulletDynamicsCommon.h"
 #include "SpaceGameTypes.h"
-#include "manager/InputHistoryManager.h"
 
 #include <string>
 #include <list>
@@ -23,6 +22,7 @@ class BulletDebugDraw;
 class SectorSettings;
 class ShipSettings;
 class InputState;
+class InputHistoryManager;
 
 namespace Ogre
 {
@@ -37,19 +37,17 @@ public:
 	{}
 
 	//Add dynamic objects and instantiate them
-	void instantiateClientShip(const RakNet::RakNetGUID& _id, Ship& _ship, const Ogre::Quaternion& _orientation, const Ogre::Vector3& _position, UniqueId& _shipUniqueId, SectorTick& _sectorTick);
+	void instantiateClientShip(const RakNet::RakNetGUID& _id, Ship& _ship, const Ogre::Quaternion& _orientation, const Ogre::Vector3& _position, UniqueId& _shipUniqueId);
 
 	//Update function
-	void updateSector();
+	void updateSector(const InputHistoryManager& _inputHistoryManager);
+	void updateSectorView();
 
 	//Unique id generator
 	UniqueId getNextUniqueId() const { return sUniqueId++; }
 
 	//Serialize
 	void serialize(RakNet::BitStream& _bitStream) const;
-
-	//Add input for a client
-	void addInput(const RakNet::RakNetGUID& _id, const InputState& _clientInput);
 
 protected:
 	static UniqueId sUniqueId;
@@ -58,12 +56,7 @@ protected:
 	std::set<RakNet::RakNetGUID> mUsersIds;
 
 	//Update ships systems
-	void updateShipsSystems(float _deltaTime, const ClientsInputMap& _clientsInputMap);
-	
-	void updateShipsView();
-
-	//Clients input history of the sector
-	InputHistoryManager mClientsInput;
+	void updateShipsSystems(float _deltaTime, const InputHistoryManager& _inputHistoryManager, std::list<ShotSettings>& _outputShots);
 };
 
 #endif //_SERVER_SECTOR_H_

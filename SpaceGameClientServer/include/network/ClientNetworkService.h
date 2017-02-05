@@ -31,7 +31,7 @@ public:
 	///Client specific method. Requires to the server the launch from a station.
 	void requireLaunchFromStation() const;
 	///Client specific method. Send player input when in space.
-	void sendShipInput(const InputState& _inputState) const;
+	void sendInput(const std::list<InputState>& _inputs, SectorTick _lastAcknowledgedInput) const;
 
 protected:
 	///Singleton

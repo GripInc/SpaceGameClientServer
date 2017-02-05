@@ -38,6 +38,8 @@ public:
 
 	void forceWorldTransform(const btTransform& _worldTransform);
 
+	btVector3 getRelativePosition(const btVector3& _originalPosition);
+
 protected:
 	virtual void instantiateCollisionObject();
 	virtual void instantiateObjectParts();

@@ -124,3 +124,17 @@ void StaticObject::forceWorldTransform(const btTransform& _worldTransform)
 	mSceneNode->setPosition(position);
 	mSceneNode->setOrientation(orientation);
 }
+
+btVector3 StaticObject::getRelativePosition(const btVector3& _worldPosition)
+{
+	//Old
+	//return mSceneNode->getOrientation() * _originalPosition + mSceneNode->getPosition();
+
+	btQuaternion rotation = mRigidBody->getWorldTransform().getRotation();
+	btQuaternion result = rotation * _worldPosition;
+	result *= rotation.inverse();
+	
+	btVector3 test = mRigidBody->getWorldTransform().getOrigin() + btVector3(result.getX(), result.getY(), result.getZ());
+
+	return mRigidBody->getWorldTransform().getOrigin() + btVector3(result.getX(), result.getY(), result.getZ());
+}

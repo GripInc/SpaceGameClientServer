@@ -35,8 +35,7 @@ namespace RakNet
 class Sector
 {
 public:
-	static const float epsilon;
-
+	
 	Sector(const std::string& _sectorName, Ogre::SceneManager* _sceneManager, float _sectorUpdateRate);
 	~Sector();
 
@@ -50,13 +49,10 @@ public:
 	std::vector<PlanetObject>& getPlanetObjects() { return mPlanetObjects;}
 	
 	//Add dynamic objects and instantiate them
-	void addShotObject(const ShotSettings& _shotSettings);
+	void addShotObjects(const std::list<ShotSettings>& _shots);
 
 	//Set static objects visible
 	void setStaticObjectsVisible(bool _value);
-
-	//Update one ship systems according to an input and a delta time
-	void updateShipSystems(const InputState& _input, Ship* _ship, float _deltaTime);
 
 	//Debug view utils
 	void switchDisplayDebug();
@@ -85,8 +81,6 @@ protected:
     btCollisionDispatcher* mDispatcher = nullptr;
 	btSequentialImpulseConstraintSolver* mConstraintSolver = nullptr;
 
-	//Game tick
-	SectorTick mSectorTick = 0;
 	//Update rate
 	float mSectorUpdateRate = 0.f;
 

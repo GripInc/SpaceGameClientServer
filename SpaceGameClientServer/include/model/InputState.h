@@ -32,6 +32,12 @@ public:
 		result += "\nmZKeyPressed:";
 		result += std::string(mZKeyPressed ? "true" : "false");
 
+		result += "\nmMouseXAbs:";
+		result += StringUtils::toStr(mMouseXAbs);
+
+		result += "\nmMouseYAbs:";
+		result += StringUtils::toStr(mMouseYAbs);
+
 		return result;
 	}
 

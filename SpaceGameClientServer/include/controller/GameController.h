@@ -20,7 +20,6 @@ public:
 protected:
 	static const float GAME_UPDATE_RATE;
 	static const unsigned int GAME_UPDATE_PER_SECONDS;
-	static const unsigned int SERVER_INPUT_BUFFER_LENGTH;
 	float mGameUpdateAccumulator = 0.f;
 	Ogre::Timer mLoopTimer;
 

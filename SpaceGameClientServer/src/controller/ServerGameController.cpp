@@ -171,7 +171,7 @@ void ServerGameController::updateDebugPanel(Ogre::Real _timeSinceLastFrame)
 	}
 }
 
-void ServerGameController::instantiateClientShip(const RakNet::RakNetGUID& _clientId, std::string& _outSector, Ogre::Vector3& _outPosition, Ogre::Quaternion& _outOrientation, UniqueId& _shipUniqueId, SectorTick& _sectorTick)
+void ServerGameController::instantiateClientShip(const RakNet::RakNetGUID& _clientId, std::string& _outSector, Ogre::Vector3& _outPosition, Ogre::Quaternion& _outOrientation, UniqueId& _shipUniqueId)
 {
 	//TODO random launchpoint among some
 	//TODO queue players if all points are busy
@@ -187,7 +187,7 @@ void ServerGameController::instantiateClientShip(const RakNet::RakNetGUID& _clie
 			_outOrientation = stationSettings->mLaunchPoints[0].mInitialOrientation;
 			_outSector = playerData->mLastSector;
 
-			mSectorController->instantiateClientShip(_clientId, playerData->mPlayerShip, _outPosition, _outOrientation, _shipUniqueId, _sectorTick);
+			mSectorController->instantiateClientShip(_clientId, playerData->mPlayerShip, _outPosition, _outOrientation, _shipUniqueId);
 		}
 		else
 		{
@@ -202,9 +202,9 @@ void ServerGameController::instantiateClientShip(const RakNet::RakNetGUID& _clie
 	}
 }
 
-void ServerGameController::addInput(const RakNet::RakNetGUID& _id, const InputState& _clientInput)
+void ServerGameController::addInputs(const RakNet::RakNetGUID& _id, const std::list<InputState>& _clientInputs)
 {
-	mSectorController->addInput(_id, _clientInput);
+	mSectorController->addInputs(_id, _clientInputs);
 }
 
 //TODO move to UIController

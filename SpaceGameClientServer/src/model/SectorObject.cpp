@@ -103,8 +103,3 @@ void SectorObject::setVisible(bool _value)
 { 
 	mSceneNode->setVisible(_value);
 }
-
-Ogre::Vector3 SectorObject::getRelativePosition(const Ogre::Vector3& _originalPosition)
-{
-	return mSceneNode->getOrientation() * _originalPosition + mSceneNode->getPosition();
-}

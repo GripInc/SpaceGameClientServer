@@ -22,7 +22,7 @@ namespace Ogre
 
 class ServerGameController;
 class PlayerData;
-class ClientsInputMap;
+class InputHistoryManager;
 
 class ServerNetworkService : public NetworkService
 {
@@ -35,7 +35,7 @@ public:
 	virtual void handlePacket(RakNet::Packet* _packet) override;
 
 	///Server specific. Broadcast a sector state to clients in the list.
-	void broadcastSector(const std::set<RakNet::RakNetGUID>& _clientIds, RakNet::BitStream& _serializedSector, const ClientsInputMap& _lastTickInputReceivedFromClient);
+	void broadcastSector(const std::set<RakNet::RakNetGUID>& _clientIds, RakNet::BitStream& _serializedSector, const InputHistoryManager& _inputHistoryManager);
 
 protected:
 	///Singleton
@@ -48,7 +48,7 @@ protected:
 	///Server specific. Send player data to a client.
 	void sendPlayerData(const PlayerData* _playerData, const RakNet::SystemAddress& _clientAdress) const;
 	///Server specific. Send player launch point to a client.
-	void sendPlayerLaunchPoint(const RakNet::RakNetGUID& _clientId, const RakNet::SystemAddress& _clientAdress, const std::string& _sector, Ogre::Vector3& _position, const Ogre::Quaternion& _orientation, UniqueId _uniqueId, SectorTick _sectorTick) const;
+	void sendPlayerLaunchPoint(const RakNet::RakNetGUID& _clientId, const RakNet::SystemAddress& _clientAdress, const std::string& _sector, Ogre::Vector3& _position, const Ogre::Quaternion& _orientation, UniqueId _uniqueId) const;
 	///Add a client input in the list of inputs to be taken care of.
 	void addClientInput(const RakNet::RakNetGUID& _clientId, RakNet::BitStream& _data);
 };

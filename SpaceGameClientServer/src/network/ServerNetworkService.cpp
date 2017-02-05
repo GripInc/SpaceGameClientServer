@@ -1,6 +1,7 @@
 #include "network/ServerNetworkService.h"
 
 #include "controller/ServerGameController.h"
+
 #include "model/PlayersData.h"
 #include "model/InputState.h"
 #include "model/ClientsInputMap.h"
@@ -11,6 +12,7 @@
 #include "BitStream.h"
 
 #include "manager/LoggerManager.h"
+#include "manager/InputHistoryManager.h"
 
 namespace
 {
@@ -73,10 +75,9 @@ void ServerNetworkService::handlePacket(RakNet::Packet* _packet)
 			Ogre::Vector3 position;
 			Ogre::Quaternion orientation;
 			UniqueId shipUniqueId;
-			SectorTick sectorTick;
 
-			mServerGameController->instantiateClientShip(_packet->guid, sector, position, orientation, shipUniqueId, sectorTick);
-			sendPlayerLaunchPoint(_packet->guid, _packet->systemAddress, sector, position, orientation, shipUniqueId, sectorTick);
+			mServerGameController->instantiateClientShip(_packet->guid, sector, position, orientation, shipUniqueId);
+			sendPlayerLaunchPoint(_packet->guid, _packet->systemAddress, sector, position, orientation, shipUniqueId);
 		}
 		break;
 		case ID_GAME_MESSAGE_INPUT_STATE:
@@ -91,20 +92,34 @@ void ServerNetworkService::handlePacket(RakNet::Packet* _packet)
 	}
 }
 
-void ServerNetworkService::broadcastSector(const std::set<RakNet::RakNetGUID>& _clientsIds, RakNet::BitStream& _serializedSector, const ClientsInputMap& _lastTickInputReceivedFromClient)
+void ServerNetworkService::broadcastSector(const std::set<RakNet::RakNetGUID>& _clientsIds, RakNet::BitStream& _serializedSector, const InputHistoryManager& _inputHistoryManager)
 {
+	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "broadcastSector", "START", false);
+
 	//Make log string
 	std::string clientIdsList = "";
 	for (const RakNet::RakNetGUID id : _clientsIds)
 	{
 		clientIdsList += std::string(id.ToString()) + ";";
 
-		const ClientsInputMap::const_iterator inputToACK = _lastTickInputReceivedFromClient.find(id);
-		if (inputToACK != _lastTickInputReceivedFromClient.end())
+		const std::map<RakNet::RakNetGUID, SectorTick>::const_iterator inputToACK = _inputHistoryManager.getLastInputReceivedFromClient().find(id);
+		if (inputToACK != _inputHistoryManager.getLastInputReceivedFromClient().end())
 		{
-			_serializedSector.Write((*inputToACK).second.mTick);
+			_serializedSector.Write((*inputToACK).second);
 
-			LoggerManager::getInstance().logI(LOG_CLASS_TAG, "broadcastSector", "send input ACK to client : " + std::string(id.ToString()) + "; for tick " + StringUtils::toStr((*inputToACK).second.mTick), false);
+			LoggerManager::getInstance().logI(LOG_CLASS_TAG, "broadcastSector", "send input ACK to client : " + std::string(id.ToString()) + "; for tick " + StringUtils::toStr((*inputToACK).second), false);
+		}
+		else
+		{
+			_serializedSector.Write((SectorTick)0);
+		}
+
+		const std::map<RakNet::RakNetGUID, SectorTick>::const_iterator lastInputSimulated = _inputHistoryManager.getNextInputToUse().find(id);
+		if (lastInputSimulated != _inputHistoryManager.getNextInputToUse().end())
+		{
+			_serializedSector.Write((*lastInputSimulated).second);
+
+			LoggerManager::getInstance().logI(LOG_CLASS_TAG, "broadcastSector", "send last input simulated to client : " + std::string(id.ToString()) + "; for tick " + StringUtils::toStr((*lastInputSimulated).second), false);
 		}
 		else
 		{
@@ -115,6 +130,8 @@ void ServerNetworkService::broadcastSector(const std::set<RakNet::RakNetGUID>& _
 	}
 
 	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "broadcastSector", "Broadcasting to clients : " + clientIdsList, false);
+
+	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "broadcastSector", "END", false);
 }
 
 void ServerNetworkService::sendPlayerData(const PlayerData* _playerData, const RakNet::SystemAddress& _clientAdress) const
@@ -123,25 +140,39 @@ void ServerNetworkService::sendPlayerData(const PlayerData* _playerData, const R
 	mNetworkLayer->serverSend(_clientAdress, RakNet::RakString(_playerData->mOriginalJsonNode.toStyledString().c_str()), IMMEDIATE_PRIORITY, RELIABLE_ORDERED, LEVEL_1_CHANNEL, ID_GAME_MESSAGE_GET_PLAYER_DATA);
 }
 
-void ServerNetworkService::sendPlayerLaunchPoint(const RakNet::RakNetGUID& _clientId, const RakNet::SystemAddress& _clientAdress, const std::string& _sector, Ogre::Vector3& _position, const Ogre::Quaternion& _orientation, UniqueId _uniqueId, SectorTick _sectorTick) const
+void ServerNetworkService::sendPlayerLaunchPoint(const RakNet::RakNetGUID& _clientId, const RakNet::SystemAddress& _clientAdress, const std::string& _sector, Ogre::Vector3& _position, const Ogre::Quaternion& _orientation, UniqueId _uniqueId) const
 {
-	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "sendPlayerLaunchPoint", "_sector is : " + _sector + "; _uniqueId is : " + StringUtils::toStr(_uniqueId) + "; _sectorTick is : " + StringUtils::toStr(_sectorTick) + "; GUID is :" + std::string(_clientId.ToString()), false);
+	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "sendPlayerLaunchPoint", "_sector is : " + _sector + "; _uniqueId is : " + StringUtils::toStr(_uniqueId) + "; GUID is :" + std::string(_clientId.ToString()), false);
 
 	RakNet::BitStream stream;
 	stream.Write(RakNet::RakString(_sector.c_str()));
 	stream.Write(_position);
 	stream.Write(_orientation);
 	stream.Write(_uniqueId);
-	stream.Write(_sectorTick);
 	mNetworkLayer->serverSend(_clientAdress, stream, IMMEDIATE_PRIORITY, RELIABLE_ORDERED, LEVEL_1_CHANNEL, ID_GAME_MESSAGE_REQUIRE_LAUNCH);
 }
 
 void ServerNetworkService::addClientInput(const RakNet::RakNetGUID& _clientId, RakNet::BitStream& _data)
 {
+	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "addClientInput", "START", false);
+
+	size_t inputListSize;
+	_data.Read(inputListSize);
+
+	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "addClientInput", "inputListSize:" + StringUtils::toStr(inputListSize), false);
+
 	InputState inputState;
+	std::list<InputState> inputList;
+	for (size_t i = 0; i < inputListSize; ++i)
+	{
+		_data.Read(inputState);
+		inputList.push_back(inputState);
 
-	_data.Read(inputState);
-
+		LoggerManager::getInstance().logI(LOG_CLASS_TAG, "addClientInput", "adding inputState for tick " + StringUtils::toStr(inputState.mTick), false);
+	}
+	
 	//Push client input
-	mServerGameController->addInput(_clientId, inputState);
+	mServerGameController->addInputs(_clientId, inputList);
+
+	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "addClientInput", "END", false);
 }

@@ -18,9 +18,8 @@ namespace
 }
 
 const float GameController::sDebugPanelRefreshRate = 0.1f;
-const unsigned int GameController::GAME_UPDATE_PER_SECONDS = 30U;
+const unsigned int GameController::GAME_UPDATE_PER_SECONDS = 20U;
 const float GameController::GAME_UPDATE_RATE = 1.f / (float)GAME_UPDATE_PER_SECONDS;
-const unsigned int GameController::SERVER_INPUT_BUFFER_LENGTH = 4;
 
 /** Init */
 void GameController::init(const std::string& _gameSettingsFilePath, Ogre::Root* _root, Ogre::RenderWindow* _renderWindow, Ogre::SceneManager* _sceneManager, NetworkLayer& _networkLayer)
@@ -49,9 +48,13 @@ void GameController::init(const std::string& _gameSettingsFilePath, Ogre::Root* 
 
 bool GameController::frameRenderingQueued(const Ogre::FrameEvent& evt)
 {
+	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "frameRenderingQueued", "START", false);
+
 	//DeltaTime
 	if (evt.timeSinceLastFrame == 0.f)
 		return true;
+
+	updateSectorView(evt.timeSinceLastFrame);
 
 	mGameUpdateAccumulator += evt.timeSinceLastFrame;
 
@@ -77,8 +80,6 @@ bool GameController::frameRenderingQueued(const Ogre::FrameEvent& evt)
 	if (loopDurationTime > GAME_UPDATE_RATE * 1000)
 		LoggerManager::getInstance().logW(LOG_CLASS_TAG, "frameRenderingQueued", "loopDurationTime was " + StringUtils::toStr(loopDurationTime) + " : Simulation is getting late!");
 
-	updateSectorView(evt.timeSinceLastFrame);
-
 	//Debug panel
 	updateDebugPanel(evt.timeSinceLastFrame);
 	
@@ -90,6 +91,8 @@ bool GameController::frameRenderingQueued(const Ogre::FrameEvent& evt)
 
 	//Handle switching if needed (client only)
 	handleSwitching();
+
+	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "frameRenderingQueued", "END", false, true);
 
 	return true;
 }

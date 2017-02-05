@@ -3,6 +3,8 @@
 
 #include <string>
 
+#include "SpaceGameTypes.h"
+
 class SectorView;
 class Sector;
 
@@ -31,6 +33,8 @@ public:
 protected:
 	SectorView* mSectorView = nullptr;
 	ISector* mCurrentSector = nullptr;
+
+	SectorTick mSectorTick = 0;
 
 	virtual void initSector(const std::string& _sectorName, Ogre::SceneManager* _sceneManager, float _sectorUpdateRate) = 0;
 	virtual void instanciateSectorObjects() = 0;

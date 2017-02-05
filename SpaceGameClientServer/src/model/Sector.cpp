@@ -28,10 +28,6 @@ namespace
 	const std::string LOG_CLASS_TAG = "Sector";
 }
 
-//Epsilon
-//Ogre::Real epsilon = std::numeric_limits<Ogre::Real>::epsilon();
-const float Sector::epsilon = 0.001f;
-
 Sector::Sector(const std::string& _sectorName, Ogre::SceneManager* _sceneManager, float _sectorUpdateRate)
 	: mSceneManager(_sceneManager),
 	mSectorUpdateRate(_sectorUpdateRate)
@@ -95,11 +91,14 @@ void Sector::instantiateObjects()
 	}
 }
 
-void Sector::addShotObject(const ShotSettings& _shotSettings)
+void Sector::addShotObjects(const std::list<ShotSettings>& _shots)
 {
-	mShots.push_back(Shot());
-	mShots.back().init(&_shotSettings, mSceneManager);
-	mShots.back().instantiateObject();
+	for (std::list<ShotSettings>::const_reference shotSetting : _shots)
+	{
+		mShots.push_back(Shot());
+		mShots.back().init(&shotSetting, mSceneManager);
+		mShots.back().instantiateObject();
+	}
 }
 
 void Sector::setStaticObjectsVisible(bool _value)
@@ -207,139 +206,4 @@ void Sector::saveSectorState(SectorTick _tick)
 	}
 
 	//TODO other kind of entities
-}
-
-void Sector::updateShipSystems(const InputState& _input, Ship* _ship, float _deltaTime)
-{
-	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateShipSystems", "START with input with tick " + StringUtils::toStr(_input.mTick), false);
-
-	Engine& shipEngine = _ship->getEngine();
-
-	///////////////////
-	//Handling thrust//
-	///////////////////
-	float& wantedThrust = shipEngine.mWantedThrust;
-	float& realThrust = shipEngine.mRealThrust;
-	const float thrustSensitivity = shipEngine.getThrustSensitivity();
-	const float thrustMaxValue = shipEngine.getThrustMaxValue();
-	const float reactivity = shipEngine.getReactivity();
-
-	if (_input.mZKeyPressed)
-		wantedThrust += thrustSensitivity * _deltaTime;
-
-	if (_input.mSKeyPressed)
-		wantedThrust -= thrustSensitivity * _deltaTime;
-
-	if (_input.mAKeyPressed)
-		wantedThrust = thrustMaxValue;
-
-	if (_input.mQKeyPressed)
-		wantedThrust = 0;
-
-	//Checking thrust bounds values
-	if (wantedThrust > thrustMaxValue)
-		wantedThrust = thrustMaxValue;
-	if (wantedThrust < 0)
-		wantedThrust = 0;
-
-	//Adding or removing thrust
-	float deltaThrust = wantedThrust - realThrust;
-	float thrustToAdd = 0.f;
-	if (std::fabs(deltaThrust) < reactivity)
-	{
-		thrustToAdd = (std::fabs(deltaThrust) / 2.f);
-	}
-	else
-	{
-		thrustToAdd = reactivity;
-	}
-
-	if (deltaThrust > epsilon)
-	{
-		realThrust += thrustToAdd * _deltaTime;
-	}
-	else
-	{
-		realThrust = wantedThrust;
-	}
-
-	///////////////////////////////////
-	//Applying mouse movement on ship//
-	///////////////////////////////////
-	const float turnRateMultiplier = _ship->getDirectional().getTurnRateMultiplier();
-	//Yaw
-	float& currentYawForce = _ship->mCurrentYawForce;
-	if (!_input.mWKeyPressed && !_input.mXKeyPressed)
-		currentYawForce = 0.f;
-	else if (_input.mWKeyPressed)
-		currentYawForce = -_ship->getMaxYawRate() * turnRateMultiplier;
-	else
-		currentYawForce = _ship->getMaxYawRate() * turnRateMultiplier;
-
-	//Pitch
-	float& currentPitchForce = _ship->mCurrentPitchForce;
-	const float maxPitchRate = _ship->getMaxPitchRate();
-	if (_input.mMouseYAbs != 0.f)
-	{
-		//Mouse control
-		currentPitchForce = _input.mMouseYAbs * maxPitchRate * turnRateMultiplier;
-	}
-	else
-	{
-		//Keyboard control
-		if (!_input.mUpKeyPressed && !_input.mDownKeyPressed)
-			currentPitchForce = 0.f;
-		else if (_input.mUpKeyPressed)
-			currentPitchForce = -maxPitchRate * turnRateMultiplier;
-		else
-			currentPitchForce = maxPitchRate * turnRateMultiplier;
-	}
-
-	//Roll
-	float& currentRollForce = _ship->mCurrentRollForce;
-	const float maxRollRate = _ship->getMaxRollRate();
-	if (_input.mMouseXAbs != 0.f)
-	{
-		//Mouse control
-		currentRollForce = _input.mMouseXAbs * maxRollRate * turnRateMultiplier;
-	}
-	else
-	{
-		//Keyboard control
-		if (!_input.mLeftKeyPressed && !_input.mRightKeyPressed)
-			currentRollForce = 0.f;
-		else if (_input.mLeftKeyPressed)
-			currentRollForce = -maxRollRate * turnRateMultiplier;
-		else
-			currentRollForce = maxRollRate * turnRateMultiplier;
-	}
-
-	//Add shot
-	if (_input.mFirePressed)
-	{
-		btAlignedObjectArray<HardPoint>& hardPoints = _ship->getHardPoints();
-		for (int i = 0; i < hardPoints.size(); ++i)
-		{
-			HardPoint& hardPoint = hardPoints[i];
-
-			if (hardPoint.isUsed() && hardPoint.getWeapon().mElapsedTime > hardPoint.getWeapon().getFireRate())
-			{
-				hardPoint.getWeapon().mElapsedTime = 0.f;
-				ShotSettings shotSettings = *hardPoint.getWeapon().getShotSettings(); //Create a copy to be able to modify it
-				shotSettings.mInitialOrientation = _ship->getSceneNode()->getOrientation();
-				shotSettings.mInitialPosition = _ship->getRelativePosition(convert(hardPoint.getWeapon().getNoslePosition() + hardPoint.getPosition()));
-				addShotObject(shotSettings);
-			}
-		}
-	}
-
-	_ship->updateHardPoints(_deltaTime);
-
-	/////////////////////////////////////////
-	//Applying ship engine power and thrust//
-	/////////////////////////////////////////
-	_ship->mEnginePotentialForce = -shipEngine.mRealThrust;
-	_ship->mEnginePotentialForce *= shipEngine.getPower();
-
-	_ship->updateForces();
 }

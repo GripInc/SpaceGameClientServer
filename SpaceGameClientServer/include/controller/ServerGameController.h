@@ -25,10 +25,10 @@ public:
 	const PlayerData* getPlayerData(const RakNet::RakNetGUID& _clientId) const;
 	PlayerData* getPlayerData(const RakNet::RakNetGUID& _clientId);
 
-	void instantiateClientShip(const RakNet::RakNetGUID& _clientId, std::string& _outSector, Ogre::Vector3& _outPosition, Ogre::Quaternion& _outOrientation, UniqueId& _shipUniqueId, SectorTick& _sectorTick);
+	void instantiateClientShip(const RakNet::RakNetGUID& _clientId, std::string& _outSector, Ogre::Vector3& _outPosition, Ogre::Quaternion& _outOrientation, UniqueId& _shipUniqueId);
 
 	//Add input for a client in a sector
-	void addInput(const RakNet::RakNetGUID& _id, const InputState& _clientInput);
+	void addInputs(const RakNet::RakNetGUID& _id, const std::list<InputState>& _clientInputs);
 
 protected:
 	///The sector controller
@@ -40,7 +40,7 @@ protected:
 	//Specialized functions (client or server) used in frameRenderingQueued
 	virtual void processNetworkBuffer() override;
 	virtual void updateGame() override;
-	virtual void updateSectorView(float _elapsedTime) override {}//Update of view is done in update sector sercver side, because view is not mandatory
+	virtual void updateSectorView(float _elapsedTime) override {}//Update of view is done in update sector server side, because view is not mandatory
 	virtual void updateDebugPanel(Ogre::Real _timeSinceLastFrame) override;
 
 	//Connected players

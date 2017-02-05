@@ -22,6 +22,10 @@ namespace
 	const std::string LOG_CLASS_TAG = "Ship";
 }
 
+//Epsilon
+//Ogre::Real epsilon = std::numeric_limits<Ogre::Real>::epsilon();
+const float Ship::epsilon = 0.001f;
+
 void Ship::initModel(const ShipSettings* _shipSettings)
 {
 	mObjectSettings = _shipSettings;
@@ -200,6 +204,15 @@ void Ship::saveState(SectorTick _tick)
 	mStateManager.saveState(_tick, ShipState(mRigidBody, mCurrentRollForce, mCurrentYawForce, mCurrentPitchForce, mEngine.mWantedThrust, mEngine.mRealThrust, hardpointsState));
 }
 
+void Ship::updateView()
+{
+	Ogre::Quaternion orientation = convert(mRigidBody->getWorldTransform().getRotation());
+	Ogre::Vector3 position = convert(mRigidBody->getWorldTransform().getOrigin());
+
+	mSceneNode->setOrientation(orientation);
+	mSceneNode->setPosition(position);
+}
+
 void Ship::updateView(SectorTick _sectorTick, float _elapsedTime, float _sectorUpdateRate)
 {
 	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateView", "START at tick " + StringUtils::toStr(_sectorTick) + "; _elapsedTime is " + StringUtils::toStr(_elapsedTime) + "; _sectorUpdateRate is:" + StringUtils::toStr(_sectorUpdateRate), false);
@@ -208,14 +221,17 @@ void Ship::updateView(SectorTick _sectorTick, float _elapsedTime, float _sectorU
 	{
 		mLastTickViewed = _sectorTick;
 		mAccumulator = _elapsedTime;
+		LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateView", "mLastTickViewed < _sectorTick : mLastTickViewed:" + StringUtils::toStr(mLastTickViewed) + "; mAccumulator:" + StringUtils::toStr(mAccumulator), false);
 	}
 	else
 	{
 		mAccumulator += _elapsedTime;
+		LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateView", "mLastTickViewed <= _sectorTick : mAccumulator:" + StringUtils::toStr(mAccumulator), false);
 	}
 
-	ShipState shipSateFromTickminusOne, shipSateFromTick;
-	mStateManager.getState(_sectorTick - 1, shipSateFromTickminusOne);
+	ShipState shipSateFromTickMinusTwo, shipSateFromTickMinusOne, shipSateFromTick;
+	mStateManager.getState(_sectorTick - 2, shipSateFromTickMinusTwo);
+	mStateManager.getState(_sectorTick - 1, shipSateFromTickMinusOne);
 	mStateManager.getState(_sectorTick, shipSateFromTick);
 
 	//Loosing time, no interpolation
@@ -223,36 +239,58 @@ void Ship::updateView(SectorTick _sectorTick, float _elapsedTime, float _sectorU
 	{
 		mInterpolatedRotation = shipSateFromTick.mWorldTransform.getRotation();
 		mInterpolatedPosition = shipSateFromTick.mWorldTransform.getOrigin();
+
+		LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateView", "_elapsedTime >= _sectorUpdateRate : taking _sectorTick position", false);
 	}
 	else
 	{
+		btQuaternion rotationAtTick;
+		btVector3 positionAtTick;
+
 		//Interpolate with rest of accumulator. We use former mInterpolatedRotation and mInterpolatedPosition
 		//Should not happen more than once in a tick
 		if (mAccumulator > _sectorUpdateRate)
 		{
 			mAccumulator -= _sectorUpdateRate;
+
+			mInterpolatedRotation = shipSateFromTickMinusOne.mWorldTransform.getRotation();
+			mInterpolatedPosition = shipSateFromTickMinusOne.mWorldTransform.getOrigin();
+
+			rotationAtTick = shipSateFromTick.mWorldTransform.getRotation();
+			positionAtTick = shipSateFromTick.mWorldTransform.getOrigin();
+
+			LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateView", "mAccumulator > _sectorUpdateRate; mAccumulator is now " + StringUtils::toStr(mAccumulator), false);
 		}
 		else
 		{
 			//Here to interpolate we use tick minus one transform
-			mInterpolatedRotation = shipSateFromTickminusOne.mWorldTransform.getRotation();
-			mInterpolatedPosition = shipSateFromTickminusOne.mWorldTransform.getOrigin();
+			mInterpolatedRotation = shipSateFromTickMinusTwo.mWorldTransform.getRotation();
+			mInterpolatedPosition = shipSateFromTickMinusTwo.mWorldTransform.getOrigin();
+
+			rotationAtTick = shipSateFromTickMinusOne.mWorldTransform.getRotation();
+			positionAtTick = shipSateFromTickMinusOne.mWorldTransform.getOrigin();
+
+			LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateView", "mAccumulator <= _sectorUpdateRate", false);
 		}
 
-		btQuaternion rotationAtTick = shipSateFromTick.mWorldTransform.getRotation();
-		btVector3& positionAtTick = shipSateFromTick.mWorldTransform.getOrigin();
-
 		float scalar = mAccumulator / _sectorUpdateRate;
+
+		LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateView", "scalar:" + StringUtils::toStr(scalar), false);
+		LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateView", "before interpolation, mInterpolatedPosition.x:" + StringUtils::toStr(mInterpolatedPosition.x()), false);
 
 		mInterpolatedRotation = mInterpolatedRotation.slerp(rotationAtTick, scalar);
 		mInterpolatedPosition = mInterpolatedPosition.lerp(positionAtTick, scalar);
 	}
+
+	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateView", "mInterpolatedPosition.x:" + StringUtils::toStr(mInterpolatedPosition.x()), false);
 
 	Ogre::Quaternion orientation = convert(mInterpolatedRotation);
 	Ogre::Vector3 position = convert(mInterpolatedPosition);
 
 	mSceneNode->setOrientation(orientation);
 	mSceneNode->setPosition(position);
+
+	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateView", "END", false);
 }
 
 void Ship::setState(const ShipState& _shipState)
@@ -303,4 +341,143 @@ void Ship::serialize(RakNet::BitStream& _bitStream) const
 
 	ShipState shipState(mRigidBody, mCurrentRollForce, mCurrentYawForce, mCurrentPitchForce, mEngine.mWantedThrust, mEngine.mRealThrust, hardpointsState);
 	shipState.serialize(_bitStream);
+}
+
+void Ship::updateSystems(const InputState& _input, float _deltaTime, std::list<ShotSettings>& _outputShots)
+{
+	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateShipSystems", "START with input with tick " + StringUtils::toStr(_input.mTick), false);
+
+	///////////////////
+	//Handling thrust//
+	///////////////////
+	float& wantedThrust = mEngine.mWantedThrust;
+	float& realThrust = mEngine.mRealThrust;
+	const float thrustSensitivity = mEngine.getThrustSensitivity();
+	const float thrustMaxValue = mEngine.getThrustMaxValue();
+	const float reactivity = mEngine.getReactivity();
+
+	if (_input.mZKeyPressed)
+		wantedThrust += thrustSensitivity * _deltaTime;
+
+	if (_input.mSKeyPressed)
+		wantedThrust -= thrustSensitivity * _deltaTime;
+
+	if (_input.mAKeyPressed)
+		wantedThrust = thrustMaxValue;
+
+	if (_input.mQKeyPressed)
+		wantedThrust = 0;
+
+	//Checking thrust bounds values
+	if (wantedThrust > thrustMaxValue)
+		wantedThrust = thrustMaxValue;
+	if (wantedThrust < 0)
+		wantedThrust = 0;
+
+	//Adding or removing thrust
+	float deltaThrust = wantedThrust - realThrust;
+	float thrustToAdd = 0.f;
+	if (std::fabs(deltaThrust) < reactivity)
+	{
+		thrustToAdd = (std::fabs(deltaThrust) / 2.f);
+	}
+	else
+	{
+		thrustToAdd = reactivity;
+	}
+
+	if (deltaThrust > epsilon)
+	{
+		realThrust += thrustToAdd * _deltaTime;
+	}
+	else
+	{
+		realThrust = wantedThrust;
+	}
+
+	///////////////////////////////////
+	//Applying mouse movement on ship//
+	///////////////////////////////////
+	const float turnRateMultiplier = mDirectional.getTurnRateMultiplier();
+	//Yaw
+	float& currentYawForce = mCurrentYawForce;
+	if (!_input.mWKeyPressed && !_input.mXKeyPressed)
+		currentYawForce = 0.f;
+	else if (_input.mWKeyPressed)
+		currentYawForce = -mMaxYawRate * turnRateMultiplier;
+	else
+		currentYawForce = mMaxYawRate * turnRateMultiplier;
+
+	//Pitch
+	float& currentPitchForce = mCurrentPitchForce;
+	if (_input.mMouseYAbs != 0.f)
+	{
+		//Mouse control
+		currentPitchForce = _input.mMouseYAbs * mMaxPitchRate * turnRateMultiplier;
+	}
+	else
+	{
+		//Keyboard control
+		if (!_input.mUpKeyPressed && !_input.mDownKeyPressed)
+			currentPitchForce = 0.f;
+		else if (_input.mUpKeyPressed)
+			currentPitchForce = -mMaxPitchRate * turnRateMultiplier;
+		else
+			currentPitchForce = mMaxPitchRate * turnRateMultiplier;
+	}
+
+	//Roll
+	float& currentRollForce = mCurrentRollForce;
+	if (_input.mMouseXAbs != 0.f)
+	{
+		//Mouse control
+		currentRollForce = _input.mMouseXAbs * mMaxRollRate * turnRateMultiplier;
+	}
+	else
+	{
+		//Keyboard control
+		if (!_input.mLeftKeyPressed && !_input.mRightKeyPressed)
+			currentRollForce = 0.f;
+		else if (_input.mLeftKeyPressed)
+			currentRollForce = -mMaxRollRate * turnRateMultiplier;
+		else
+			currentRollForce = mMaxRollRate * turnRateMultiplier;
+	}
+
+	//Add shot
+	if (_input.mFirePressed)
+	{
+		LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateShipSystems", "START HARDPOINT UPDATE _input.mFirePressed == true", false);
+
+		for (int i = 0; i < mHardPoints.size(); ++i)
+		{
+			HardPoint& hardPoint = mHardPoints[i];
+			Weapon& weapon = hardPoint.getWeapon();
+
+			LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateShipSystems", "hardPoint.getWeapon().mElapsedTime:" + StringUtils::toStr(weapon.mElapsedTime) + "; hardPoint.getWeapon().getFireRate():" + StringUtils::toStr(hardPoint.getWeapon().getFireRate()), false);
+
+			if (hardPoint.isUsed() && weapon.mElapsedTime > weapon.getFireRate())
+			{
+				LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateShipSystems", "Adding a shot", false);
+
+				weapon.mElapsedTime = 0.f;
+				_outputShots.push_back(*weapon.getShotSettings()); //Push back a copy, to modify initial transform
+				ShotSettings& shotSettings = _outputShots.back();
+				shotSettings.mInitialOrientation = convert(mRigidBody->getWorldTransform().getRotation());
+				shotSettings.mInitialPosition = convert(getRelativePosition(weapon.getNoslePosition() + hardPoint.getPosition()));
+			}
+		}
+
+		LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateShipSystems", "END HARDPOINT UPDATE", false);
+	}
+
+	updateHardPoints(_deltaTime);
+
+	/////////////////////////////////////////
+	//Applying ship engine power and thrust//
+	/////////////////////////////////////////
+	mEnginePotentialForce = -mEngine.mRealThrust;
+	mEnginePotentialForce *= mEngine.getPower();
+
+	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateShipSystems", "END", false);
 }

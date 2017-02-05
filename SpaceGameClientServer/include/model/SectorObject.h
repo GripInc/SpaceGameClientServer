@@ -26,8 +26,7 @@ public:
 	
 	Ogre::SceneNode* getSceneNode() { return mSceneNode; }
 	const std::string& getName() const { return mName; }
-	Ogre::Vector3 getRelativePosition(const Ogre::Vector3& _originalPosition);
-
+	
 	void setVisible(bool _value);
 
 	virtual void destroy();

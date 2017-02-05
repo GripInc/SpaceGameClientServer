@@ -101,12 +101,36 @@ void ClientNetworkService::handleLaunchData(RakNet::BitStream& _data) const
 	mClientGameController->prepareSwitchToInSpaceMode(initialPosition, initialOrientation, sectorName.C_String(), shipUniqueId, mNetworkLayer->getMyGUID(), sectorTick);
 }
 
-void ClientNetworkService::sendShipInput(const InputState& _inputState) const
+void ClientNetworkService::sendInput(const std::list<InputState>& _inputs, SectorTick _lastAcknowledgedInput) const
 {
-	RakNet::BitStream stream;
-	stream.Write(_inputState);
+	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "sendInput", "START", false);
+	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "sendInput", "_lastAcknowledgedInput is " + StringUtils::toStr(_lastAcknowledgedInput), false);
 
-	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "sendShipInput", "Input tick is : " + StringUtils::toStr(_inputState.mTick), false);
+	//TODO more efficient way
+	std::list<InputState> test = _inputs;
 
-	mNetworkLayer->clientSend(stream, IMMEDIATE_PRIORITY, RELIABLE_ORDERED, LEVEL_1_CHANNEL, ID_GAME_MESSAGE_INPUT_STATE);
+	while (!test.empty() && test.front().mTick != _lastAcknowledgedInput + 1)
+		test.pop_front();
+
+	size_t inputsSize = test.size();
+
+	if (inputsSize > 0)
+	{
+		RakNet::BitStream stream;
+		stream.Write(inputsSize);
+
+		LoggerManager::getInstance().logI(LOG_CLASS_TAG, "sendInput", "inputsSize:" + StringUtils::toStr(inputsSize), false);
+
+		for (std::list<InputState>::const_reference inputState : test)
+		{
+			LoggerManager::getInstance().logI(LOG_CLASS_TAG, "sendInput", "writing input:" + StringUtils::toStr(inputState.mTick), false);
+			stream.Write(inputState);
+		}
+
+		mNetworkLayer->clientSend(stream, IMMEDIATE_PRIORITY, RELIABLE_ORDERED, LEVEL_1_CHANNEL, ID_GAME_MESSAGE_INPUT_STATE);
+	}
+	else
+		LoggerManager::getInstance().logI(LOG_CLASS_TAG, "sendInput", "inputsSize <= 0, don't send message", false);
+
+	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "sendInput", "END", false);
 }

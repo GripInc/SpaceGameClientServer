@@ -39,14 +39,12 @@ public:
 		: Sector(_sectorName, _sceneManager, _sectorUpdateRate)
 	{}
 
-	void setFirstTick(SectorTick _firstTick) { mSectorTick = _firstTick; }
-
 	//void instantiateShip(const std::string& _shipId, const Ogre::Quaternion& _orientation, const Ogre::Vector3& _position, RakNet::RakNetGUID _rakNetGUID);
 	void instantiatePlayerShip(Ship& _playerShip, const Ogre::Quaternion& _orientation, const Ogre::Vector3& _position, UniqueId _uniqueId, RakNet::RakNetGUID _rakNetGUID, Ogre::SceneNode* _cameraSceneNode);
 
 	//Update function
-	void updateSector(ShipInputHandler& _shipInputHandler);
-	void updateSectorView(float _elapsedTime);
+	void updateSector(SectorTick _sectorTick, const std::list<InputState>& _playerInputHistory);
+	void updateSectorView(float _elapsedTime, SectorTick _sectorTick);
 
 	//For debug only
 	const Ship* getPlayerShip() const { return mPlayerShip; }
@@ -56,7 +54,7 @@ public:
 	//Client regenerated unique ids are negative value, until server tells client wich unique it should use (positive one)
 	UniqueId getTemporaryNextUniqueId() const { return sTemporaryUniqueId--; }
 
-	void receivedSectorState(RakNet::BitStream& _data);
+	void storeReceivedSectorState(const std::map<RakNet::RakNetGUID, ShipState>& _shipStates, SectorTick _lastSimulatedInput);
 
 protected:
 	static UniqueId sTemporaryUniqueId;
@@ -65,23 +63,13 @@ protected:
 	Ship* mPlayerShip = nullptr; ///< Usefull to test special cases
 
 	//Updates
-	void updateShipsSystems(float _deltaTime, SectorTick _sectorTick);
-	void updateShipsView(SectorTick _sectorTick, float _elapsedTime);
-
-	//Input handling
-	ClientsInputMap mLastClientsInput;
-	std::list<InputState> mPlayerInputHistory;
-	void addPlayerInputInHistory(const InputState& _inputState);
-	const InputState* getInputAtTick(SectorTick _sectorTick) const;
-	unsigned int mMaxInputRewind = 0;
+	void updatePlayerShipSystems(float _deltaTime, SectorTick _sectorTick, const std::list<InputState>& _playerInputHistory, std::list<ShotSettings>& _outputShots);
 
 	//Stored last received sector state
 	struct SectorState
 	{
 		SectorTick mSectorTick = 0;
-		ClientsInputMap mClientInputMap;
 		std::map<RakNet::RakNetGUID, ShipState> mShips;
-		SectorTick mLastAcknowledgedInput = 0;
 		bool mSimulated = true;
 	} mLastReceivedSectorState;
 };
