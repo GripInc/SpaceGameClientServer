@@ -40,6 +40,9 @@ protected:
 	virtual void updateDebugPanel(Ogre::Real _timeSinceLastFrame) = 0;
 	virtual void handleSwitching();
 
+	//Flag to quit application
+	bool mDoQuitApplication = false;
+
 	//DEBUG
 	float mDebugPanelLastRefresh = 0.f;
 	static const float sDebugPanelRefreshRate;

@@ -119,7 +119,7 @@ void ClientGameController::switchToInSpaceMode(const Ogre::Vector3& _position, c
 		mStationController->clean();
 
 	//Link gameController to input controller
-	mInputController->addKeyListener(this, "GameController"); //May be removed in the future if not needed
+	mInputController->addKeyListener(this, "ClientGameController"); //May be removed in the future if not needed
 
 	//UIController
 	mUIController = new UIController(this, mRenderWindow, mInputController->getMouse()); //For now, displays debug panel only
@@ -283,6 +283,9 @@ bool ClientGameController::keyReleased(const OIS::KeyEvent &arg)
 		break;
 	case OIS::KC_F4:
 		mLaggyValue /= 2;
+		break;
+	case OIS::KC_ESCAPE:
+		mDoQuitApplication = true;
 		break;
 	default:break;
 	}

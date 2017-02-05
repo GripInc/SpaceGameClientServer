@@ -50,6 +50,12 @@ bool GameController::frameRenderingQueued(const Ogre::FrameEvent& evt)
 {
 	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "frameRenderingQueued", "START", false);
 
+	if (mDoQuitApplication)
+	{
+		LoggerManager::getInstance().logI(LOG_CLASS_TAG, "frameRenderingQueued", "QUITTING APP", false);
+		return false;
+	}
+
 	//DeltaTime
 	if (evt.timeSinceLastFrame == 0.f)
 		return true;

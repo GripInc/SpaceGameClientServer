@@ -46,7 +46,7 @@ void ServerGameController::startGame()
 	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "startGame", "", false);
 
 	//Link gameController to input controller
-	mInputController->addKeyListener(this, "GameController"); //May be removed in the future if not needed
+	mInputController->addKeyListener(this, "ServerGameController"); //May be removed in the future if not needed
 
 	//UIController
 	mUIController = new UIController(this, mRenderWindow, mInputController->getMouse()); //For now, displays debug panel only
@@ -230,6 +230,9 @@ bool ServerGameController::keyReleased(const OIS::KeyEvent &arg)
 		break;
 	case OIS::KC_F4:
 		mLaggyValue /= 2;
+		break;
+	case OIS::KC_ESCAPE:
+		mDoQuitApplication = true;
 		break;
 	default:break;
 	}
