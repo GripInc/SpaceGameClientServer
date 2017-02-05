@@ -13,13 +13,13 @@ class UIController;
 class GameController : public Ogre::FrameListener, public OIS::KeyListener
 {
 public:
+	static const unsigned int GAME_UPDATE_PER_SECONDS;
 
 	///Initialize game controller
 	virtual void init(const std::string& _gameSettingsFilePath, Ogre::Root* _root, Ogre::RenderWindow* _renderWindow, Ogre::SceneManager* _sceneManager, NetworkLayer& _networkLayer);
 
 protected:
 	static const float GAME_UPDATE_RATE;
-	static const unsigned int GAME_UPDATE_PER_SECONDS;
 	float mGameUpdateAccumulator = 0.f;
 	Ogre::Timer mLoopTimer;
 

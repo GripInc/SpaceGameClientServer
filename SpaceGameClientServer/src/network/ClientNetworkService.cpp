@@ -109,7 +109,7 @@ void ClientNetworkService::sendInput(const std::list<InputState>& _inputs, Secto
 	//TODO more efficient way
 	std::list<InputState> test = _inputs;
 
-	while (!test.empty() && test.front().mTick < _lastAcknowledgedInput + 1)
+	while (!test.empty() && test.front().mTick < _lastAcknowledgedInput + 1 || test.size() > GameController::GAME_UPDATE_PER_SECONDS)
 	{
 		test.pop_front();
 	}
