@@ -109,8 +109,10 @@ void ClientNetworkService::sendInput(const std::list<InputState>& _inputs, Secto
 	//TODO more efficient way
 	std::list<InputState> test = _inputs;
 
-	while (!test.empty() && test.front().mTick != _lastAcknowledgedInput + 1)
+	while (!test.empty() && test.front().mTick < _lastAcknowledgedInput + 1)
+	{
 		test.pop_front();
+	}
 
 	size_t inputsSize = test.size();
 

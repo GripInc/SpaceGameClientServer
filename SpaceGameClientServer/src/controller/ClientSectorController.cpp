@@ -45,7 +45,7 @@ void ClientSectorController::updateSector(const ShipInputHandler& _shipInputHand
 	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateSector", "mSectorTick:" + StringUtils::toStr(mSectorTick), false);
 
 	///Input handling
-	//Remove acked inputs
+	//Remove simulated inputs
 	while (!mPlayerInputHistory.empty() && mPlayerInputHistory.front().mTick < mLastSimulatedInput)
 		mPlayerInputHistory.pop_front();
 
