@@ -69,23 +69,23 @@ void ClientSectorController::updateSectorView(float _elapsedTime)
 	mCurrentSector->updateSectorView(_elapsedTime, mSectorTick - 1);
 }
 
-void ClientSectorController::receivedSectorState(const std::map<RakNet::RakNetGUID, ShipState>& _shipStates, SectorTick _lastAcknowledgedInput, SectorTick _lastSimulatedInput)
+void ClientSectorController::receivedSectorState(const SectorState& _sectorState, SectorTick _lastAcknowledgedInput)
 {
 	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "receivedSectorState", "START", false);
 
-	if (mLastSimulatedInput < _lastSimulatedInput)
+	if (mLastSimulatedInput < _sectorState.mTick)
 	{
-		LoggerManager::getInstance().logI(LOG_CLASS_TAG, "receivedSectorState", "mLastSimulatedInput(" + StringUtils::toStr(mLastSimulatedInput) + ") < _lastSimulatedInput(" + StringUtils::toStr(_lastSimulatedInput) + ") using sector state", false);
+		LoggerManager::getInstance().logI(LOG_CLASS_TAG, "receivedSectorState", "mLastSimulatedInput(" + StringUtils::toStr(mLastSimulatedInput) + ") < _sectorState.mTick(" + StringUtils::toStr(_sectorState.mTick) + ") using sector state", false);
 
 		mLastAcknowledgedInput = _lastAcknowledgedInput;
-		mLastSimulatedInput = _lastSimulatedInput;
+		mLastSimulatedInput = _sectorState.mTick;
 
 		LoggerManager::getInstance().logI(LOG_CLASS_TAG, "receivedSectorState", "mLastAcknowledgedInput is now " + StringUtils::toStr(mLastAcknowledgedInput), false);
 
-		mCurrentSector->storeReceivedSectorState(_shipStates, mLastSimulatedInput);
+		mCurrentSector->storeReceivedSectorState(_sectorState);
 	}
 	else
-		LoggerManager::getInstance().logI(LOG_CLASS_TAG, "receivedSectorState", "mLastSimulatedInput(" + StringUtils::toStr(mLastSimulatedInput) + ") >= _lastSimulatedInput(" + StringUtils::toStr(_lastSimulatedInput) + ") dropped sector state", false);
+		LoggerManager::getInstance().logI(LOG_CLASS_TAG, "receivedSectorState", "mLastSimulatedInput(" + StringUtils::toStr(mLastSimulatedInput) + ") >= _sectorState.mTick(" + StringUtils::toStr(_sectorState.mTick) + ") dropped sector state", false);
 
 	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "receivedSectorState", "END", false);
 }

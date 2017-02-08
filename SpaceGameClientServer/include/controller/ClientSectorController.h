@@ -37,7 +37,7 @@ public:
 	void updateSectorView(float _elapsedTime);
 
 	//Received sector update from server
-	void receivedSectorState(const std::map<RakNet::RakNetGUID, ShipState>& _shipStates, SectorTick _lastAcknowledgedInput, SectorTick _lastSimulatedInput);
+	void receivedSectorState(const SectorState& _sectorState, SectorTick _lastAcknowledgedInput);
 
 	virtual void switchDisplayDebug() override;
 	virtual void switchDisplay() override;

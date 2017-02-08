@@ -30,20 +30,3 @@ void DynamicObject::destroy()
 {
 	//StaticObject::destroy();
 }
-
-void DynamicObject::updateView(SectorTick _sectorTick)
-{
-	DynamicObjectState output;
-	mStateManager.getState(_sectorTick, output);
-
-	Ogre::Quaternion orientation = convert(output.mWorldTransform.getRotation());
-	Ogre::Vector3 position = convert(output.mWorldTransform.getOrigin());
-
-	mSceneNode->setPosition(position);
-	mSceneNode->setOrientation(orientation);
-}
-
-void DynamicObject::saveState(SectorTick _tick)
-{
-	mStateManager.saveState(_tick, DynamicObjectState(mRigidBody));
-}

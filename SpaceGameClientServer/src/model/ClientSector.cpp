@@ -58,32 +58,33 @@ void ClientSector::instantiatePlayerShip(Ship& _playerShip, const Ogre::Quaterni
 	mPlayerShip->instantiateObject();
 	mPlayerShip->attachCamera(_cameraSceneNode);
 	mPlayerShip->forceWorldTransform(btTransform(convert(_orientation), convert(_position)));
-	mShips[_rakNetGUID] = mPlayerShip;
+	mShipsByUniqueId[_uniqueId] = mPlayerShip;
+	mShipsByRaknetId[_rakNetGUID] = mPlayerShip;
 }
 
 void ClientSector::updateSector(SectorTick _sectorTick, const std::list<InputState>& _playerInputHistory)
 {
 	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateSector", "START at tick " + StringUtils::toStr(_sectorTick), false);
 
-	if (!mLastReceivedSectorState.mSimulated && mLastReceivedSectorState.mSectorTick > 0)
+	if (!mLastReceivedSectorState.mSimulated && mLastReceivedSectorState.mSectorState.mTick > 0)
 	{
 		mLastReceivedSectorState.mSimulated = true;
 
-		SectorTick resimulateFromTick = mLastReceivedSectorState.mSectorTick;
+		SectorTick resimulateFromTick = mLastReceivedSectorState.mSectorState.mTick;
 
 		LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateSector", "resimulateFromTick is " + StringUtils::toStr(resimulateFromTick), false);
 
 		//Set ship states as received from server
-		for (std::map<RakNet::RakNetGUID, ShipState>::const_reference pair : mLastReceivedSectorState.mShips)
+		for (std::list<ShipState>::const_reference shipState : mLastReceivedSectorState.mSectorState.mShipsState)
 		{
 			//Find the ship in sector
-			std::map<RakNet::RakNetGUID, Ship*>::const_iterator foundShip = mShips.find(pair.first);
-			if (foundShip != mShips.end())
+			std::map<UniqueId, Ship*>::const_iterator foundShip = mShipsByUniqueId.find(shipState.mUniqueId);
+			if (foundShip != mShipsByUniqueId.end())
 			{
-				LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateSector", "Setting ship state at tick : " + StringUtils::toStr(resimulateFromTick) + " for ship id " + StringUtils::toStr(pair.first.ToString()), false);
+				LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateSector", "Setting ship state at tick : " + StringUtils::toStr(resimulateFromTick) + " for ship id " + StringUtils::toStr(shipState.mUniqueId), false);
 
 				Ship* ship = (*foundShip).second;
-				ship->setState(pair.second);
+				ship->setState(shipState);
 			}
 			else
 			{
@@ -121,10 +122,8 @@ void ClientSector::updateSector(SectorTick _sectorTick, const std::list<InputSta
 
 void ClientSector::updateSectorView(float _elapsedTime, SectorTick _sectorTick)
 {
-	for (std::map<RakNet::RakNetGUID, Ship*>::iterator shipIt = mShips.begin(), shipItEnd = mShips.end(); shipIt != shipItEnd; ++shipIt)
-	{
-		(*shipIt).second->updateView(_sectorTick, _elapsedTime, mSectorUpdateRate);
-	}
+	for (std::map<UniqueId, Ship*>::const_reference ship : mShipsByUniqueId)
+		ship.second->updateView(_sectorTick, _elapsedTime, mSectorUpdateRate, mStateManager);
 
 	//TODO other entities
 }
@@ -199,13 +198,12 @@ void ClientSector::updatePlayerShipSystems(float _deltaTime, SectorTick _sectorT
 	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updatePlayerShipSystems", "END", false);
 }
 
-void ClientSector::storeReceivedSectorState(const std::map<RakNet::RakNetGUID, ShipState>& _shipStates, SectorTick _lastSimulatedInput)
+void ClientSector::storeReceivedSectorState(const SectorState& _sectorState)
 {
 	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "storeReceivedSectorState", "START", false);
 	
-	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "storeReceivedSectorState", "_lastSimulatedInput is " + StringUtils::toStr(_lastSimulatedInput), false);
-	mLastReceivedSectorState.mSectorTick = _lastSimulatedInput;
-	mLastReceivedSectorState.mShips = _shipStates;
+	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "storeReceivedSectorState", "_sectorState.mSectorTick is " + StringUtils::toStr(_sectorState.mTick), false);
+	mLastReceivedSectorState.mSectorState = _sectorState;
 	mLastReceivedSectorState.mSimulated = false;
 
 	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "storeReceivedSectorState", "END", false);

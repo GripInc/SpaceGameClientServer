@@ -1262,5 +1262,8 @@
     <ClCompile Include="src\utils\BulletUtils.cpp">
       <Filter>Source Files\utils</Filter>
     </ClCompile>
+    <ClCompile Include="src\manager\StateManager.cpp">
+      <Filter>Source Files\manager</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

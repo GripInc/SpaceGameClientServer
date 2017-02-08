@@ -189,20 +189,20 @@ void Ship::updateHardPoints(float _deltaTime)
 	}
 }
 
-void Ship::saveState(SectorTick _tick)
-{
-	std::vector<std::pair<int, float> > hardpointsState;
-	int hardpointsSize = mHardPoints.size();
-	for (int i = 0; i < hardpointsSize; ++i)
-	{
-		if (mHardPoints[i].isUsed())
-		{
-			hardpointsState.push_back(std::make_pair(mHardPoints[i].getIndex(), mHardPoints[i].getWeapon().mElapsedTime));
-		}
-	}
-
-	mStateManager.saveState(_tick, ShipState(mRigidBody, mCurrentRollForce, mCurrentYawForce, mCurrentPitchForce, mEngine.mWantedThrust, mEngine.mRealThrust, hardpointsState));
-}
+//void Ship::saveState(SectorTick _tick)
+//{
+//	std::vector<std::pair<int, float> > hardpointsState;
+//	int hardpointsSize = mHardPoints.size();
+//	for (int i = 0; i < hardpointsSize; ++i)
+//	{
+//		if (mHardPoints[i].isUsed())
+//		{
+//			hardpointsState.push_back(std::make_pair(mHardPoints[i].getIndex(), mHardPoints[i].getWeapon().mElapsedTime));
+//		}
+//	}
+//
+//	mStateManager.saveState(_tick, ShipState(mRigidBody, mCurrentRollForce, mCurrentYawForce, mCurrentPitchForce, mEngine.mWantedThrust, mEngine.mRealThrust, hardpointsState));
+//}
 
 void Ship::updateView()
 {
@@ -213,7 +213,7 @@ void Ship::updateView()
 	mSceneNode->setPosition(position);
 }
 
-void Ship::updateView(SectorTick _sectorTick, float _elapsedTime, float _sectorUpdateRate)
+void Ship::updateView(SectorTick _sectorTick, float _elapsedTime, float _sectorUpdateRate, const StateManager& _stateManager)
 {
 	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateView", "START at tick " + StringUtils::toStr(_sectorTick) + "; _elapsedTime is " + StringUtils::toStr(_elapsedTime) + "; _sectorUpdateRate is:" + StringUtils::toStr(_sectorUpdateRate), false);
 
@@ -230,9 +230,9 @@ void Ship::updateView(SectorTick _sectorTick, float _elapsedTime, float _sectorU
 	}
 
 	ShipState shipSateFromTickMinusTwo, shipSateFromTickMinusOne, shipSateFromTick;
-	mStateManager.getState(_sectorTick - 2, shipSateFromTickMinusTwo);
-	mStateManager.getState(_sectorTick - 1, shipSateFromTickMinusOne);
-	mStateManager.getState(_sectorTick, shipSateFromTick);
+	_stateManager.getShipState(_sectorTick - 2, mUniqueId, shipSateFromTickMinusTwo);
+	_stateManager.getShipState(_sectorTick - 1, mUniqueId, shipSateFromTickMinusOne);
+	_stateManager.getShipState(_sectorTick, mUniqueId, shipSateFromTick);
 
 	//Loosing time, no interpolation
 	if (_elapsedTime >= _sectorUpdateRate)
@@ -321,26 +321,6 @@ void Ship::setState(const ShipState& _shipState)
 			mHardPoints[index].getWeapon().mElapsedTime = harpointsState[i].second;
 		}
 	}
-}
-
-void Ship::serialize(RakNet::BitStream& _bitStream) const
-{
-	//Unique id
-	_bitStream.Write(mUniqueId);
-
-	//State
-	std::vector<std::pair<int, float> > hardpointsState;
-	int hardpointsSize = mHardPoints.size();
-	for (int i = 0; i < hardpointsSize; ++i)
-	{
-		if (mHardPoints[i].isUsed())
-		{
-			hardpointsState.push_back(std::make_pair(mHardPoints[i].getIndex(), mHardPoints[i].getWeapon().mElapsedTime));
-		}
-	}
-
-	ShipState shipState(mRigidBody, mCurrentRollForce, mCurrentYawForce, mCurrentPitchForce, mEngine.mWantedThrust, mEngine.mRealThrust, hardpointsState);
-	shipState.serialize(_bitStream);
 }
 
 void Ship::updateSystems(const InputState& _input, float _deltaTime, std::list<ShotSettings>& _outputShots)
@@ -480,4 +460,30 @@ void Ship::updateSystems(const InputState& _input, float _deltaTime, std::list<S
 	mEnginePotentialForce *= mEngine.getPower();
 
 	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateShipSystems", "END", false);
+}
+
+void Ship::fillState(ShipState& _shipState) const
+{
+	_shipState.mWorldTransform = mRigidBody->getWorldTransform();
+	_shipState.mLinearVelocity = mRigidBody->getLinearVelocity();
+	_shipState.mAngularVelocity = mRigidBody->getAngularVelocity();
+	_shipState.mTotalForce = mRigidBody->getTotalForce();
+	_shipState.mTotalTorque = mRigidBody->getTotalTorque();
+
+	_shipState.mCurrentRollForce = mCurrentRollForce;
+	_shipState.mCurrentYawForce = mCurrentYawForce;
+	_shipState.mCurrentPitchForce = mCurrentPitchForce;
+	_shipState.mEngineWantedThrust = mEngine.mWantedThrust;
+	_shipState.mEngineRealThrust = mEngine.mRealThrust;
+	_shipState.mHarpointsState.clear();
+
+	std::vector<std::pair<int, float> > hardpointsState;
+	int hardpointsSize = mHardPoints.size();
+	for (int i = 0; i < hardpointsSize; ++i)
+	{
+		if (mHardPoints[i].isUsed())
+			_shipState.mHarpointsState.push_back(std::make_pair(mHardPoints[i].getIndex(), mHardPoints[i].getWeapon().mElapsedTime));
+	}
+
+	_shipState.mUniqueId = mUniqueId;
 }

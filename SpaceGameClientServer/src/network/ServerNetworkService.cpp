@@ -92,44 +92,45 @@ void ServerNetworkService::handlePacket(RakNet::Packet* _packet)
 	}
 }
 
-void ServerNetworkService::broadcastSector(const std::set<RakNet::RakNetGUID>& _clientsIds, RakNet::BitStream& _serializedSector, const InputHistoryManager& _inputHistoryManager)
+void ServerNetworkService::broadcastSector(const std::set<RakNet::RakNetGUID>& _clientsIds, SectorState& _sectorState, const InputHistoryManager& _inputHistoryManager)
 {
 	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "broadcastSector", "START", false);
 
-	//Make log string
-	std::string clientIdsList = "";
-	for (const RakNet::RakNetGUID id : _clientsIds)
+	RakNet::BitStream serializedSector;
+
+	const std::map<RakNet::RakNetGUID, SectorTick>& lastInputReceivedFromClient = _inputHistoryManager.getLastInputReceivedFromClient();
+	const std::map<RakNet::RakNetGUID, SectorTick>& nextInputToUse = _inputHistoryManager.getNextInputToUse();
+	for (std::set<RakNet::RakNetGUID>::const_reference userId : _clientsIds)
 	{
-		clientIdsList += std::string(id.ToString()) + ";";
+		serializedSector.Reset();
 
-		const std::map<RakNet::RakNetGUID, SectorTick>::const_iterator inputToACK = _inputHistoryManager.getLastInputReceivedFromClient().find(id);
-		if (inputToACK != _inputHistoryManager.getLastInputReceivedFromClient().end())
+		//Write in sector state the last simulated input for the client
+		const std::map<RakNet::RakNetGUID, SectorTick>::const_iterator lastInputSimulated = nextInputToUse.find(userId);
+		if (lastInputSimulated != nextInputToUse.end())
 		{
-			_serializedSector.Write((*inputToACK).second);
+			_sectorState.mTick = (*lastInputSimulated).second;
 
-			LoggerManager::getInstance().logI(LOG_CLASS_TAG, "broadcastSector", "send input ACK to client : " + std::string(id.ToString()) + "; for tick " + StringUtils::toStr((*inputToACK).second), false);
+			LoggerManager::getInstance().logI(LOG_CLASS_TAG, "broadcastSector", "Write sector tick as last input simulated to client : " + std::string(userId.ToString()) + "; with tick " + StringUtils::toStr(_sectorState.mTick), false);
+		}
+
+		//Serialize sector state
+		_sectorState.serialize(serializedSector);
+
+		//Add last input ack for the client
+		const std::map<RakNet::RakNetGUID, SectorTick>::const_iterator inputToACK = lastInputReceivedFromClient.find(userId);
+		if (inputToACK != lastInputReceivedFromClient.end())
+		{
+			serializedSector.Write((*inputToACK).second);
+
+			LoggerManager::getInstance().logI(LOG_CLASS_TAG, "broadcastSector", "Write input ACK for client : " + std::string(userId.ToString()) + "; for tick " + StringUtils::toStr((*inputToACK).second), false);
 		}
 		else
 		{
-			_serializedSector.Write((SectorTick)0);
+			serializedSector.Write((SectorTick)0);
 		}
 
-		const std::map<RakNet::RakNetGUID, SectorTick>::const_iterator lastInputSimulated = _inputHistoryManager.getNextInputToUse().find(id);
-		if (lastInputSimulated != _inputHistoryManager.getNextInputToUse().end())
-		{
-			_serializedSector.Write((*lastInputSimulated).second);
-
-			LoggerManager::getInstance().logI(LOG_CLASS_TAG, "broadcastSector", "send last input simulated to client : " + std::string(id.ToString()) + "; for tick " + StringUtils::toStr((*lastInputSimulated).second), false);
-		}
-		else
-		{
-			_serializedSector.Write((SectorTick)0);
-		}
-
-		mNetworkLayer->serverSend(id, _serializedSector, IMMEDIATE_PRIORITY, RELIABLE_ORDERED, LEVEL_1_CHANNEL, ID_GAME_MESSAGE_SECTOR_STATE);
+		mNetworkLayer->serverSend(userId, serializedSector, IMMEDIATE_PRIORITY, UNRELIABLE, LEVEL_1_CHANNEL, ID_GAME_MESSAGE_SECTOR_STATE);
 	}
-
-	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "broadcastSector", "Broadcasting to clients : " + clientIdsList, false);
 
 	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "broadcastSector", "END", false);
 }

@@ -66,20 +66,19 @@ public:
 
 	//DEBUG
 	const btVector3& getLinearVelocity() const;
-	btRigidBody* getRigidBody() { return mRigidBody; }
+	const btRigidBody* getRigidBody() { return mRigidBody; }
 	float mDebugValue = 0.f;
 	float mEngineRealForce = 0.f;
 
-	void serialize(RakNet::BitStream& _bitStream) const;
-
 	//States management
-	virtual void saveState(SectorTick _tick) override;
 	virtual void setState(const ShipState& _shipState);
 
 	//Update view with interpolation (used by client)
-	void updateView(SectorTick _sectorTick, float _elapsedTime, float _sectorUpdateRate);
+	void updateView(SectorTick _sectorTick, float _elapsedTime, float _sectorUpdateRate, const StateManager& _stateManager);
 	//Update view using current model (used by server)
 	void updateView();
+
+	void fillState(ShipState& _shipState) const;
 
 protected:
 	///Ship properties from XML
@@ -106,9 +105,6 @@ protected:
 
 	//Update hardpoints elapsed time
 	void updateHardPoints(float _deltaTime);
-
-private:
-	StateManager<ShipState> mStateManager;
 };
 
 #endif //_SHIP_H_

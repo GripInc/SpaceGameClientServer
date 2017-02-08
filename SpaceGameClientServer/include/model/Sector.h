@@ -71,7 +71,12 @@ protected:
 	std::vector<Shot> mShots;
 	std::vector<PlanetObject> mPlanetObjects;
 	std::vector<SectorObject> mGateObjects;
-	std::map<RakNet::RakNetGUID, Ship*> mShips;
+	std::map<RakNet::RakNetGUID, Ship*> mShipsByRaknetId;
+	std::map<UniqueId, Ship*> mShipsByUniqueId;
+
+	//Managed sector states history
+	StateManager mStateManager;
+	void fillSectorState(SectorTick _tick, SectorState& _sectorState) const;
 
 	//The physic world
 	btDiscreteDynamicsWorld* mDynamicWorld = nullptr;

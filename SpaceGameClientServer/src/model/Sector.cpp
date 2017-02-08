@@ -53,6 +53,9 @@ Sector::Sector(const std::string& _sectorName, Ogre::SceneManager* _sceneManager
 	mBulletDebugDraw = new BulletDebugDraw(mSceneManager, mDynamicWorld);
 	mBulletDebugDraw->setDebugMode(btIDebugDraw::DBG_DrawContactPoints | btIDebugDraw::DBG_DrawWireframe | btIDebugDraw::DBG_DrawAabb);
 	mDisplayDebug = false;
+
+	//Init state manager
+	mStateManager.setMaxStateAmount(100U);
 }
 
 void Sector::instantiateObjects()
@@ -131,10 +134,8 @@ Sector::~Sector()
 		mShots[i].destroy();
 	}
 
-	for(std::map<RakNet::RakNetGUID, Ship*>::iterator shipIt = mShips.begin(), shipItEnd = mShips.end(); shipIt != shipItEnd; ++shipIt)
-	{
-		(*shipIt).second->destroy();
-	}
+	for(std::map<UniqueId, Ship*>::reference ship : mShipsByUniqueId)
+		ship.second->destroy();
 
 	mBulletDebugDraw->stop();
 }
@@ -196,14 +197,33 @@ void Sector::switchDisplay()
 	setStaticObjectsVisible(mDoDisplayWorld);
 }
 
+void Sector::fillSectorState(SectorTick _tick, SectorState& _sectorState) const
+{
+	_sectorState.mTick = _tick;
+
+	std::list<ShipState>& shipsState = _sectorState.mShipsState;
+	shipsState.clear();
+	for (std::map<UniqueId, Ship*>::const_reference UIdShipPair : mShipsByUniqueId)
+	{
+		shipsState.push_back(ShipState());
+		UIdShipPair.second->fillState(shipsState.back());
+	}
+
+	std::list<ShotState>& shotsState = _sectorState.mShotsState;
+	shotsState.clear();
+	for (std::vector<Shot>::const_reference shot : mShots)
+	{
+		shotsState.push_back(ShotState());
+		shot.fillState(shotsState.back());
+	}
+}
+
 void Sector::saveSectorState(SectorTick _tick)
 {
 	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "saveSectorState", "_tick is : " + StringUtils::toStr(_tick), false);
 
-	for (std::pair<RakNet::RakNetGUID, Ship*> UIdShipPair : mShips)
-	{
-		UIdShipPair.second->saveState(_tick);
-	}
+	SectorState sectorState;
+	fillSectorState(_tick, sectorState);
 
-	//TODO other kind of entities
+	mStateManager.saveState(sectorState);
 }

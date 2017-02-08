@@ -5,6 +5,8 @@
 
 #include "model/deserialized/ShotsSettings.h"
 
+#include "manager/StateManager.h"
+
 class Shot : public SectorObject
 {
 public:
@@ -23,6 +25,13 @@ public:
 	float getLifeTime() const { return mLifeTime; }
 
 	virtual ~Shot();
+
+	void fillState(ShotState& _shotState) const
+	{
+		//TODO
+		//_shotState.mWorldTransform = mWorldTransform;
+		//_shotState.mLinearVelocity = mLinearVelocity;
+	}
 
 protected:
 	float mLifeTime = 0.f;

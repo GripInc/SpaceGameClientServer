@@ -31,21 +31,22 @@ UniqueId ServerSector::sUniqueId = -1;
 
 void ServerSector::instantiateClientShip(const RakNet::RakNetGUID& _id, Ship& _ship, const Ogre::Quaternion& _orientation, const Ogre::Vector3& _position, UniqueId& _shipUniqueId)
 {
-	std::map<RakNet::RakNetGUID, Ship*>::const_iterator foundItem = mShips.find(_id);
-	if (foundItem == mShips.end())
+	std::set<RakNet::RakNetGUID>::const_iterator foundItem = mUsersIds.find(_id);
+	if (foundItem == mUsersIds.end())
 	{
 		_shipUniqueId = getNextUniqueId();
 		_ship.init(mSceneManager, mDynamicWorld, _shipUniqueId);
 		_ship.instantiateObject();
 		_ship.forceWorldTransform(btTransform(convert(_orientation), convert(_position)));
-		mShips[_id] = &_ship;
+		mShipsByUniqueId[_shipUniqueId] = &_ship;
+		mShipsByRaknetId[_id] = &_ship;
 		mUsersIds.insert(_id);
 
 		LoggerManager::getInstance().logI(LOG_CLASS_TAG, "instantiateClientShip", "_shipUniqueId : " + StringUtils::toStr(_shipUniqueId) + "; (GUID)_id : " + std::string(_id.ToString()) + "; _shipId : " + _ship.getName(), false);
 	}
 	else
 	{
-		LoggerManager::getInstance().logE(LOG_CLASS_TAG, "instantiateClientShip", "A ship already exists for _id : " + std::string(_id.ToString()));
+		LoggerManager::getInstance().logE(LOG_CLASS_TAG, "instantiateClientShip", "User already registered: _id : " + std::string(_id.ToString()));
 		assert(false);
 	}
 }
@@ -63,9 +64,9 @@ void ServerSector::updateSector(const InputHistoryManager& _inputHistoryManager)
 	mDynamicWorld->stepSimulation(mSectorUpdateRate, 0, mSectorUpdateRate);
 	
 	//Sector state broadcasting
-	RakNet::BitStream bitStream;
-	this->serialize(bitStream);
-	ServerNetworkService::getInstance().broadcastSector(mUsersIds, bitStream, _inputHistoryManager);
+	SectorState sectorState;
+	fillSectorState(0, sectorState);
+	ServerNetworkService::getInstance().broadcastSector(mUsersIds, sectorState, _inputHistoryManager);
 
 	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateSector", "END", false);
 }
@@ -116,10 +117,10 @@ void ServerSector::updateShipsSystems(float _deltaTime, const InputHistoryManage
 {
 	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateShipsSystems", "START", false);
 
-	for (std::map<RakNet::RakNetGUID, Ship*>::const_iterator shipIt = mShips.begin(), shipItEnd = mShips.end(); shipIt != shipItEnd; ++shipIt)
+	for (std::map<RakNet::RakNetGUID, Ship*>::const_reference ship : mShipsByRaknetId)
 	{
-		RakNet::RakNetGUID clientId = (*shipIt).first;
-		Ship* clientShip = (*shipIt).second;
+		RakNet::RakNetGUID clientId = ship.first;
+		Ship* clientShip = ship.second;
 		InputState& clientInput = InputState();
 
 		LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateShipsSystems", "Updating ship systems for GUID : " + StringUtils::toStr(clientId.ToString()), false);
@@ -146,25 +147,8 @@ void ServerSector::updateShipsSystems(float _deltaTime, const InputHistoryManage
 	LoggerManager::getInstance().logI(LOG_CLASS_TAG, "updateShipsSystems", "END", false);
 }
 
-void ServerSector::serialize(RakNet::BitStream& _bitStream) const
-{
-	//Serialize ships
-	_bitStream.Write(mShips.size());
-	const std::map<RakNet::RakNetGUID, Ship*>::const_iterator shipsItEnd = mShips.end();
-	for (std::map<RakNet::RakNetGUID, Ship*>::const_iterator shipsIt = mShips.begin(); shipsIt != shipsItEnd; ++shipsIt)
-	{
-		_bitStream.Write((*shipsIt).first);
-		(*shipsIt).second->serialize(_bitStream);
-	}
-
-	//TODO dynamic objects
-	//TODO shots
-}
-
 void ServerSector::updateSectorView()
 {
-	for (std::map<RakNet::RakNetGUID, Ship*>::iterator shipIt = mShips.begin(), shipItEnd = mShips.end(); shipIt != shipItEnd; ++shipIt)
-	{
-		(*shipIt).second->updateView();
-	}
+	for (std::map<UniqueId, Ship*>::const_reference ship : mShipsByUniqueId)
+		ship.second->updateView();
 }

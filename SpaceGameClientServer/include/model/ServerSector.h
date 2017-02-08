@@ -44,10 +44,7 @@ public:
 	void updateSectorView();
 
 	//Unique id generator
-	UniqueId getNextUniqueId() const { return sUniqueId++; }
-
-	//Serialize
-	void serialize(RakNet::BitStream& _bitStream) const;
+	UniqueId getNextUniqueId() const { return ++sUniqueId; }
 
 protected:
 	static UniqueId sUniqueId;

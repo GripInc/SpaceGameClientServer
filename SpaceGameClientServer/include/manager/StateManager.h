@@ -2,12 +2,17 @@
 #define _STATE_MANAGER_H_
 
 #include <vector>
-#include <map>
+#include <list>
+#include <deque>
 
 #include "SpaceGameTypes.h"
+
 #include "model/InputState.h"
+
 #include "BitStream.h"
 #include "btBulletDynamicsCommon.h"
+
+class Ship;
 
 //Class used to record dynamic object state by ticks
 class DynamicObjectState
@@ -23,23 +28,8 @@ public:
 		mTotalTorque(_rigidBody->getTotalTorque())
 	{}
 
-	virtual void serialize(RakNet::BitStream& _bitStream) const
-	{
-		_bitStream.Write(mWorldTransform);
-		_bitStream.Write(mLinearVelocity);
-		_bitStream.Write(mAngularVelocity);
-		_bitStream.Write(mTotalForce);
-		_bitStream.Write(mTotalTorque);
-	}
-
-	virtual void deserialize(RakNet::BitStream& _bitStream)
-	{
-		_bitStream.Read(mWorldTransform);
-		_bitStream.Read(mLinearVelocity);
-		_bitStream.Read(mAngularVelocity);
-		_bitStream.Read(mTotalForce);
-		_bitStream.Read(mTotalTorque);
-	}
+	virtual void serialize(RakNet::BitStream& _bitStream) const;
+	virtual void deserialize(RakNet::BitStream& _bitStream);
 
 	btTransform mWorldTransform;
 	btVector3 mLinearVelocity;
@@ -53,8 +43,8 @@ class ShipState : public DynamicObjectState
 public:
 	ShipState() {}
 
-	ShipState(const btRigidBody* _rigidBody, float _currentRollForce, float _currentYawForce, float _currentPitchForce, float _engineWantedThrust, float _engineRealThrust, const std::vector<std::pair<int, float> >& _harpointsState)
-		: DynamicObjectState(_rigidBody),
+	ShipState(UniqueId _uniqueId, float _currentRollForce, float _currentYawForce, float _currentPitchForce, float _engineWantedThrust, float _engineRealThrust, const std::vector<std::pair<int, float> >& _harpointsState)
+		: mUniqueId(_uniqueId),
 		mCurrentRollForce(_currentRollForce),
 		mCurrentYawForce(_currentYawForce),
 		mCurrentPitchForce(_currentPitchForce),
@@ -63,45 +53,10 @@ public:
 		mHarpointsState(_harpointsState)
 	{}
 
-	virtual void serialize(RakNet::BitStream& _bitStream) const
-	{
-		DynamicObjectState::serialize(_bitStream);
+	virtual void serialize(RakNet::BitStream& _bitStream) const;
+	virtual void deserialize(RakNet::BitStream& _bitStream);
 
-		_bitStream.Write(mCurrentRollForce);
-		_bitStream.Write(mCurrentYawForce);
-		_bitStream.Write(mCurrentPitchForce);
-		_bitStream.Write(mEngineWantedThrust);
-		_bitStream.Write(mEngineRealThrust);
-
-		size_t hardpointsAmount = mHarpointsState.size();
-		_bitStream.Write(hardpointsAmount);
-		for(size_t i = 0; i < hardpointsAmount; ++i)
-		{
-			_bitStream.Write(mHarpointsState[i].first);
-			_bitStream.Write(mHarpointsState[i].second);
-		}
-	}
-
-	virtual void deserialize(RakNet::BitStream& _bitStream)
-	{
-		DynamicObjectState::deserialize(_bitStream);
-
-		_bitStream.Read(mCurrentRollForce);
-		_bitStream.Read(mCurrentYawForce);
-		_bitStream.Read(mCurrentPitchForce);
-		_bitStream.Read(mEngineWantedThrust);
-		_bitStream.Read(mEngineRealThrust);
-
-		size_t hardpointsAmount;
-		_bitStream.Read(hardpointsAmount);
-		mHarpointsState.clear();
-		mHarpointsState.resize(hardpointsAmount, std::make_pair(0, 0.f));
-		for(size_t i = 0; i < hardpointsAmount; ++i)
-		{
-			_bitStream.Read(mHarpointsState[i].first);
-			_bitStream.Read(mHarpointsState[i].second);
-		}
-	}
+	UniqueId mUniqueId;
 
 	//Systems relative
 	float mCurrentRollForce = 0.f;
@@ -115,45 +70,56 @@ public:
 	std::vector<std::pair<int, float> > mHarpointsState;
 };
 
-template<typename T>
+class ShotState
+{
+public:
+	ShotState() {}
+
+	ShotState(const btTransform& _worldTransform, const btVector3& _linearVelocity)
+		: mWorldTransform(_worldTransform),
+		mLinearVelocity(_linearVelocity)
+	{}
+
+	virtual void serialize(RakNet::BitStream& _bitStream) const;
+	virtual void deserialize(RakNet::BitStream& _bitStream);
+
+	btTransform mWorldTransform;
+	btVector3 mLinearVelocity;
+};
+
+class SectorState
+{
+public:
+	SectorState() {}
+
+	SectorState(SectorTick _tick, const std::list<ShipState>& _shipsState, const std::list<ShotState>& _shotsState)
+		: mTick(_tick),
+		mShipsState(_shipsState),
+		mShotsState(_shotsState)
+	{}
+
+	virtual void serialize(RakNet::BitStream& _bitStream) const;
+	virtual void deserialize(RakNet::BitStream& _bitStream);
+
+	SectorTick mTick = 0U;
+	std::list<ShipState> mShipsState;
+	std::list<ShotState> mShotsState;
+};
+
 class StateManager
 {
 public:
-	void saveState(SectorTick _tick, const T& _state)
-	{
-		mStates[_tick] = _state;
+	void setMaxStateAmount(unsigned int _maxStateAmount);
 
-		/*if((*mStates.begin()).first < _tick - MAX_SECTOR_TICK_REWIND_AMOUNT)
-		{
-			SectorTick minimumTick = _tick - MAX_SECTOR_TICK_REWIND_AMOUNT;
-			std::map<SectorTick, T>::const_iterator it = mStates.begin();
-			std::map<SectorTick, T>::const_iterator itEnd = mStates.end();
-			while((*it).first < minimumTick)
-			{
-				++it;
-			}
-			mStates.erase(mStates.begin(), it);
-		}*/
-	}
+	void saveState(const SectorState& _state);
+	bool getState(SectorTick _tick, SectorState& _outState) const;
 
-	bool getState(SectorTick _tick, T& _outState)
-	{
-		std::map<SectorTick, T>::const_iterator foundIt = mStates.find(_tick);
-
-		if(foundIt == mStates.end())
-		{
-			//TODO log anomaly
-			return false;
-		}
-		else
-		{
-			_outState = (*foundIt).second;
-			return true;
-		}
-	}
+	bool getShipState(SectorTick _tick, UniqueId _uniqueId, ShipState& _outState) const;
 
 protected:
-	std::map<SectorTick, T> mStates;
+	std::deque<SectorState> mStates;
+	long long int mTickOffset = 0;
+	unsigned int mMaxStateAmount = 0U;
 };
 
 #endif //_STATE_MANAGER_H_

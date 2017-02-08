@@ -564,6 +564,7 @@
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\manager\InputHistoryManager.cpp" />
     <ClCompile Include="src\manager\LoggerManager.cpp" />
+    <ClCompile Include="src\manager\StateManager.cpp" />
     <ClCompile Include="src\model\ClientSector.cpp" />
     <ClCompile Include="src\model\Directional.cpp" />
     <ClCompile Include="src\model\DynamicObject.cpp" />

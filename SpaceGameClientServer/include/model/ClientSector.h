@@ -54,7 +54,7 @@ public:
 	//Client regenerated unique ids are negative value, until server tells client wich unique it should use (positive one)
 	UniqueId getTemporaryNextUniqueId() const { return sTemporaryUniqueId--; }
 
-	void storeReceivedSectorState(const std::map<RakNet::RakNetGUID, ShipState>& _shipStates, SectorTick _lastSimulatedInput);
+	void storeReceivedSectorState(const SectorState& _sectorState);
 
 protected:
 	static UniqueId sTemporaryUniqueId;
@@ -66,10 +66,9 @@ protected:
 	void updatePlayerShipSystems(float _deltaTime, SectorTick _sectorTick, const std::list<InputState>& _playerInputHistory, std::list<ShotSettings>& _outputShots);
 
 	//Stored last received sector state
-	struct SectorState
+	struct ReceivedSectorState
 	{
-		SectorTick mSectorTick = 0;
-		std::map<RakNet::RakNetGUID, ShipState> mShips;
+		SectorState mSectorState;
 		bool mSimulated = true;
 	} mLastReceivedSectorState;
 };
